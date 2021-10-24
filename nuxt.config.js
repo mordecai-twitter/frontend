@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
 
-dotenv.config()
+  dotenv.config()
 
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head

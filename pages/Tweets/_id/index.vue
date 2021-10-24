@@ -3,32 +3,28 @@
     <nuxt-link to="/tweets">
       Back To Tweets
     </nuxt-link>
-    <h2>{{ tweet.joke }}</h2>
+    <h2 v-if="isLoaded">{{ tweet.data.text }}</h2>
     <hr>
     <small>Tweet ID: {{ $route.params.id }}</small>
   </div>
 </template>
 
 <script>
+
+import { twitterClient } from '../../../common/twitter'
+
 export default {
   data () {
     return {
-      tweet: {}
+      tweet: {},
+      isLoaded: false
     }
   },
   async created () {
-    const config = {
-      headers: {
-        Accept: 'application/json'
-      }
-    }
     try {
-      let res = await fetch(
-        `https://icanhazdadjoke.com/j/${this.$route.params.id}`,
-        config
-      )
-      res = await res.json()
+      const res = await twitterClient.v2.singleTweet(this.$route.params.id)
       this.tweet = res
+      this.isLoaded = true
     } catch (err) {
       console.log(err)
     }

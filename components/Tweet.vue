@@ -2,7 +2,7 @@
 <template>
   <nuxt-link :to="'tweets/' + tweet.id">
     <div class="tweet">
-      <p>{{ tweet.joke }}</p>
+      <p>{{ tweet.text }}</p>
     </div>
   </nuxt-link>
 </template>

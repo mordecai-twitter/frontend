@@ -7,6 +7,7 @@
 
 <script>
 import Tweet from '../../components/Tweet'
+import { twitterClient } from '../../common/twitter'
 export default {
   components: {
     Tweet
@@ -17,15 +18,11 @@ export default {
     }
   },
   async created () {
-    const config = {
-      headers: {
-        Accept: 'application/json'
-      }
-    }
+    this.tweets = []
     try {
-      let res = await fetch('https://icanhazdadjoke.com/search', config)
-      res = await res.json()
-      this.tweets = res.results
+      const res = await twitterClient.v2.search('Javascript', { 'media.fields': 'url' })
+      // const res = await twitterClient.v2.userTimeline('12', { exclude: 'replies' })
+      this.tweets = res._realData.data
     } catch (err) {
       console.log(err)
     }
