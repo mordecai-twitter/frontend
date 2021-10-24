@@ -1,3 +1,7 @@
+import dotenv from 'dotenv'
+
+dotenv.config()
+
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -48,5 +52,14 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
+    extend (config, { isDev, isClient }) { 
+      config.node = {
+          fs: "empty"
+      }
+    }
+  },
+  env: {
+    TWITTER_API_BEARER_TOKEN: process.env.TWITTER_API_BEARER_TOKEN,
+    TWITTER_API_BACKEND: process.env.TWITTER_API_BACKEND
   }
 }
