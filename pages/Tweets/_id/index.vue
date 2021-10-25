@@ -1,8 +1,6 @@
 <template>
   <div>
-    <nuxt-link to="/tweets">
-      Back To Tweets
-    </nuxt-link>
+    <a href="" @click.prevent="$router.back()">Go Back</a>
     <h2 v-if="isLoaded">{{ tweet.data.text }}</h2>
     <hr>
     <small>Tweet ID: {{ $route.params.id }}</small>
