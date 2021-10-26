@@ -3,9 +3,32 @@
     <h2>Tweets:</h2>
     <input v-model="query" type="text" placeholder="Insert here some text...">
     <input type="button" name="" value="Search" @click="search">
-    <Tweet v-for="tweet in tweets" :key="tweet.id" :tweet="tweet" />
+    <br>
     <button v-if="currentPageIndex !== 0" type="button" name="button" @click="prevPage">Recent</button>
+    <input
+      id="hashtag"
+      v-model="searchType"
+      type="radio"
+      selected
+      name="searchType"
+      value="hashtag"
+    >
+    <label for="hashtag">Hashtag</label>
+    <br>
+    <input
+      id="user"
+      v-model="searchType"
+      type="radio"
+      name="searchType"
+      value="user"
+    >
+    <label for="user">User</label>
+    <br>
+    <input id="keyWord" v-model="searchType" type="radio" name="searchType" value="keyWord">
+    <label for="keyWord">Key Word</label>
+    <br>
     <button type="button" name="button" @click="nextPage">Older</button>
+    <Tweet v-for="tweet in tweets" :key="tweet.id" :tweet="tweet" />
   </div>
 </template>
 
@@ -21,6 +44,7 @@ export default {
       tweets: Array,
       pages: Array,
       currentPageIndex: Number,
+      searchType: 'hashtag',
       query: ''
     }
   },
@@ -34,9 +58,18 @@ export default {
       this.tweets = []
       this.pages = []
       this.currentPageIndex = 0
-      console.log(this.query)
+      if (this.searchType === 'hashtag') {
+        this.query = '#' + this.query
+      }
       try {
-        const page = await twitterClient.v2.search(this.query, { 'media.fields': 'url' })
+        let page, user
+        if (this.searchType !== 'user') {
+          page = await twitterClient.v2.search(this.query, { 'media.fields': 'url' })
+        } else {
+          user = await twitterClient.v2.userByUsername(this.query)
+          const userId = user.data.id
+          page = await twitterClient.v2.userTimeline(userId, { exclude: 'replies' })
+        }
         // const res = await twitterClient.v2.userTimeline('12', { exclude: 'replies' })
         this.pages.push(page)
         this.tweets = this.pages[this.currentPageIndex].tweets
