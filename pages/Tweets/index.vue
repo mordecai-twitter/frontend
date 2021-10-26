@@ -4,8 +4,8 @@
     <input v-model="query" type="text" placeholder="Insert here some text...">
     <input type="button" name="" value="Search" @click="search">
     <Tweet v-for="tweet in tweets" :key="tweet.id" :tweet="tweet" />
-    <button type="button" name="button" @click="prevPage">Previous</button>
-    <button type="button" name="button" @click="nextPage">Next</button>
+    <button v-if="currentPageIndex !== 0" type="button" name="button" @click="prevPage">Recent</button>
+    <button type="button" name="button" @click="nextPage">Older</button>
   </div>
 </template>
 
@@ -19,40 +19,49 @@ export default {
   data () {
     return {
       tweets: Array,
-      page: Object,
+      pages: Array,
+      currentPageIndex: Number,
       query: ''
     }
   },
   created () {
     this.tweets = []
+    this.pages = []
+    this.currentPageIndex = 0
   },
   methods: {
     async search () {
       this.tweets = []
+      this.pages = []
+      this.currentPageIndex = 0
       console.log(this.query)
       try {
-        const paginator = await twitterClient.v2.search(this.query)
+        const page = await twitterClient.v2.search(this.query, { 'media.fields': 'url' })
         // const res = await twitterClient.v2.userTimeline('12', { exclude: 'replies' })
-        this.page = paginator
-        this.tweets = paginator.tweets
+        this.pages.push(page)
+        this.tweets = this.pages[this.currentPageIndex].tweets
       } catch (err) {
         console.log(err)
       }
     },
     async nextPage () {
       try {
-        const res = await this.page.next()
-        this.page = res
-        this.tweets = this.page.tweets
+        this.currentPageIndex = this.currentPageIndex + 1
+        if (this.currentPageIndex > this.pages.length - 1) {
+          const res = await this.pages[this.currentPageIndex - 1].next()
+          this.pages.push(res)
+        }
+        this.tweets = this.pages[this.currentPageIndex].tweets
       } catch (err) {
         console.log(err)
       }
     },
-    async prevPage () {
+    prevPage () {
       try {
-        const res = await this.page.previous()
-        this.page = res
-        this.tweets = this.page.tweets
+        if (this.currentPageIndex > 0) {
+          this.currentPageIndex = this.currentPageIndex - 1
+          this.tweets = this.pages[this.currentPageIndex].tweets
+        }
       } catch (err) {
         console.log(err)
       }
