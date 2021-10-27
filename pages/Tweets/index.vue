@@ -1,35 +1,25 @@
 <template lang="html">
-  <div class="">
-    <h2>Tweets:</h2>
-    <input v-model="query" type="text" placeholder="Insert here some text...">
-    <input type="button" name="" value="Search" @click="search">
+  <c-flex direction="column" m="2em" align="center">
+    <c-flex w="60em" justify="center">
+        <c-form-control>
+          <c-select bg="#16202c" placeholder="Search by" v-model="searchType">
+            <option value="keyword">Keyword</option>
+            <option value="user">User</option>
+          </c-select>
+        </c-form-control>
+        <c-input pl="1em" variant="flushed" bg="#16202c" w="50%" v-model="query" type="text" placeholder="Insert here some text..."/>
+        <c-button variant-color="black" type="button" name="" value="Search" @click="search">Search</c-button>
+    </c-flex>
     <br>
-    <button v-if="currentPageIndex !== 0" type="button" name="button" @click="prevPage">Recent</button>
-    <input
-      id="hashtag"
-      v-model="searchType"
-      type="radio"
-      selected
-      name="searchType"
-      value="hashtag"
-    >
-    <label for="hashtag">Hashtag</label>
-    <br>
-    <input
-      id="user"
-      v-model="searchType"
-      type="radio"
-      name="searchType"
-      value="user"
-    >
-    <label for="user">User</label>
-    <br>
-    <input id="keyWord" v-model="searchType" type="radio" name="searchType" value="keyWord">
-    <label for="keyWord">Key Word</label>
-    <br>
-    <button type="button" name="button" @click="nextPage">Older</button>
-    <Tweet v-for="tweet in tweets" :key="tweet.id" :tweet="tweet" />
-  </div>
+    <c-flex w="30em" justify="space-evenly">
+      <button v-if="currentPageIndex !== 0" type="button" name="button" @click="prevPage">Recent</button>
+      <button type="button" name="button" @click="nextPage">Older</button>
+    </c-flex>
+
+    <c-flex direction="column">
+      <Tweet v-for="tweet in tweets" :key="tweet.id" :tweet="tweet" />
+    </c-flex>
+  </c-flex>
 </template>
 
 <script>
@@ -44,7 +34,7 @@ export default {
       tweets: Array,
       pages: Array,
       currentPageIndex: Number,
-      searchType: 'hashtag',
+      searchType: 'keyword',
       query: ''
     }
   },
@@ -58,15 +48,13 @@ export default {
       this.tweets = []
       this.pages = []
       this.currentPageIndex = 0
-      if (this.searchType === 'hashtag') {
-        this.query = '#' + this.query
-      }
+      let query = this.query
       try {
         let page, user
-        if (this.searchType !== 'user') {
-          page = await twitterClient.v2.search(this.query, { 'media.fields': 'url' })
+        if (this.searchType != 'user') {
+          page = await twitterClient.v2.search(query, { 'media.fields': 'url' })
         } else {
-          user = await twitterClient.v2.userByUsername(this.query)
+          user = await twitterClient.v2.userByUsername(query)
           const userId = user.data.id
           page = await twitterClient.v2.userTimeline(userId, { exclude: 'replies' })
         }
@@ -103,7 +91,3 @@ export default {
 
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>
