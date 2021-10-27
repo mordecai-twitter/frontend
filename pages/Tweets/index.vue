@@ -1,14 +1,23 @@
 <template lang="html">
   <c-flex direction="column" m="2em" align="center">
     <c-flex w="60em" justify="center">
-        <c-form-control>
-          <c-select bg="#16202c" placeholder="Search by" v-model="searchType">
-            <option value="keyword">Keyword</option>
-            <option value="user">User</option>
-          </c-select>
-        </c-form-control>
-        <c-input pl="1em" variant="flushed" bg="#16202c" w="50%" v-model="query" type="text" placeholder="Insert here some text..."/>
-        <c-button variant-color="black" type="button" name="" value="Search" @click="search">Search</c-button>
+      <c-form-control>
+        <c-select v-model="searchType" bg="#16202c" placeholder="Search by">
+          <option value="keyword">Keyword</option>
+          <option value="user">User</option>
+          <option value="hashtag">Hashtag</option>
+        </c-select>
+      </c-form-control>
+      <c-input
+        v-model="query"
+        pl="1em"
+        variant="flushed"
+        bg="#16202c"
+        w="50%"
+        type="text"
+        placeholder="Insert here some text..."
+      />
+      <c-button variant-color="black" type="button" name="" value="Search" @click="search">Search</c-button>
     </c-flex>
     <br>
     <c-flex w="30em" justify="space-evenly">
@@ -51,7 +60,10 @@ export default {
       let query = this.query
       try {
         let page, user
-        if (this.searchType != 'user') {
+        if (this.searchType === 'hashtag') {
+          query = '#' + query
+        }
+        if (this.searchType !== 'user') {
           page = await twitterClient.v2.search(query, { 'media.fields': 'url' })
         } else {
           user = await twitterClient.v2.userByUsername(query)
