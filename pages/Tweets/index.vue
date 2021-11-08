@@ -29,11 +29,12 @@
       />
       <c-button variant-color="black" type="button" name="" value="Search" @click="search">Search</c-button>
     </c-flex>
+    <!-- TODO @Donnoh: disabilita recent quando siamo alla prima pagina. Disabilta temporaneamente i bottoni fino a quando non vengono caricati i tweeet -->
     <br>
-    <!-- <c-flex w="30em" justify="space-evenly">
-      <button v-if="currentPageIndex !== 0" type="button" name="button" @click="prevPage">Recent</button>
+    <c-flex w="30em" justify="space-evenly">
+      <button type="button" name="button" @click="prevPage">Recent</button>
       <button type="button" name="button" @click="nextPage">Older</button>
-    </c-flex> -->
+    </c-flex>
 
     <c-flex direction="column">
       <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" />
@@ -54,6 +55,7 @@ export default {
       pages: Array,
       currentPageIndex: Number,
       searchType: 'keyword',
+      paginator: Object,
       query: '',
       place: ''
     }
@@ -61,12 +63,20 @@ export default {
   created () {
     this.tweets = []
     this.pages = []
-    this.currentPageIndex = 0
+    this.currentPage = 0
   },
   methods: {
     async search () {
-      const tweetsResponse = await core.search(this.query)
-      this.tweets = tweetsResponse
+      this.paginator = await core.search(this.query, this.place)
+      this.tweets = this.paginator.getTweets()
+    },
+    async prevPage () {
+      this.currentPage = await this.paginator.prev()
+      this.tweets = this.paginator.getTweets()
+    },
+    async nextPage () {
+      this.currentPage = await this.paginator.next()
+      this.tweets = this.paginator.getTweets()
     }
   }
 
