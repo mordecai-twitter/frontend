@@ -26,7 +26,6 @@ class twitter {
   }
 
   async search (query) {
-    console.log(query)
     return await this.request(this.searchUrl, query)
   }
 

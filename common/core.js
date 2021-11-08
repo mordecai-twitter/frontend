@@ -96,7 +96,6 @@ class Core {
         geocode = coordinates.latitude + ',' + coordinates.longitude + ',' + radius
         queryObj.geocode = geocode
       }
-      console.log(queryObj)
       const tweets = await this.api.search(queryObj)
       return new Paginator(tweets.statuses, queryObj)
     } catch (e) {
