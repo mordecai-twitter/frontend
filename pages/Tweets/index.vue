@@ -32,7 +32,7 @@
     <!-- TODO @Donnoh: disabilita recent quando siamo alla prima pagina. Disabilta temporaneamente i bottoni fino a quando non vengono caricati i tweeet -->
     <br>
     <c-flex w="30em" justify="space-evenly">
-      <button type="button" name="button" @click="prevPage">Recent</button>
+      <button v-if="!currentPage" type="button" name="button" @click="prevPage">Recent</button>
       <button type="button" name="button" @click="nextPage">Older</button>
     </c-flex>
 
@@ -53,7 +53,7 @@ export default {
     return {
       tweets: Array,
       pages: Array,
-      currentPageIndex: Number,
+      currentPage: Number,
       searchType: 'keyword',
       paginator: Object,
       query: '',
