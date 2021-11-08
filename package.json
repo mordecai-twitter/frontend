@@ -19,6 +19,7 @@
     "dotenv": "^10.0.0",
     "leaflet": "^1.7.1",
     "nuxt": "^2.15.8",
+    "nuxt-leaflet": "^0.0.25",
     "twitter-api-v2": "^1.6.1",
     "vue2-leaflet": "^2.7.1"
   },

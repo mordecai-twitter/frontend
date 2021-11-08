@@ -1,8 +1,16 @@
 <template>
   <div class="container">
-      <h1>Hello </h1>
+    <Map />
   </div>
 </template>
 
 <script lang="js">
+import Map from '../components/Map'
+
+export default {
+  components: {
+    Map
+  }
+}
+
 </script>
