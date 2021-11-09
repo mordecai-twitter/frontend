@@ -5,8 +5,9 @@ class Paginator {
     console.log(err)
   }
 
-  constructor (tweets, query) {
+  constructor (tweets, query, endpoint) {
     this.tweets = tweets
+    this.endpoint = endpoint
     //  The index is placed to the newest tweet in the current place
     this.index = 0
     //  Array for old sinc_id in order to use it as a range for previous request
@@ -32,7 +33,7 @@ class Paginator {
   async next () {
     try {
       const realQuery = { ...this.query, max_id: this.ids[this.index + 1] }
-      const tweets = await this.api.search(realQuery)
+      const tweets = await this.api.nextTweets(this.endpoint, realQuery)
       if (tweets.statuses.length > 0) {
         this.tweets = tweets.statuses
         this.index = this.index + 1
@@ -55,7 +56,7 @@ class Paginator {
     if (this.index > 0) {
       try {
         const realQuery = { ...this.query, since_id: this.ids[this.index], max_id: this.ids[this.index - 1] }
-        const tweets = await this.api.search(realQuery)
+        const tweets = await this.api.nextTweets(this.endpoint, realQuery)
         if (tweets.statuses.length > 0) {
           this.tweets = tweets.statuses
           this.index = this.index - 1
@@ -86,18 +87,18 @@ class Core {
   * @return {Object[]} geolocalized tweets matching query and place parameters
   *
   */
-  async search (query, place = '', radius = '10km') {
+  async search (keyword, query = {}, place = '', radius = '10km') {
     try {
       let geocode = ''
-      const queryObj = {}
-      queryObj.q = query
+      const queryObj = { ...query }
+      queryObj.q = keyword
       if (place) {
         const coordinates = await this.api.geo({ query: place })
         geocode = coordinates.latitude + ',' + coordinates.longitude + ',' + radius
         queryObj.geocode = geocode
       }
       const tweets = await this.api.search(queryObj)
-      return new Paginator(tweets.statuses, queryObj)
+      return new Paginator(tweets.statuses, queryObj, 'search')
     } catch (e) {
       return this.handleError(e)
     }
@@ -113,6 +114,18 @@ class Core {
     try {
       const response = await this.api.singleTweet(id)
       return response
+    } catch (e) {
+      return this.handleError(e)
+    }
+  }
+
+  async userTimeline (username, query = {}) {
+    try {
+      let response = await this.api.user(username)
+      const userId = response.data.id
+      query = { ...query, user_id: userId }
+      response = await this.api.userTweets(query)
+      return new Paginator(response.statuses, query, 'userTweets')
     } catch (e) {
       return this.handleError(e)
     }

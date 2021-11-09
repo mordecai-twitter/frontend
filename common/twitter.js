@@ -1,7 +1,7 @@
 const axios = require('axios').default
 
 class twitter {
-  #handleError (err) {
+  handleError (err) {
     console.log(err)
   }
 
@@ -10,7 +10,8 @@ class twitter {
     this.api = axios.create({ baseURL: this.baseURL })
     this.searchUrl = 'search/tweets'
     this.geoUrl = 'geo/search'
-    this.userUrl = 'user/:username'
+    this.userUrl = 'user'
+    this.userTweetsUrl = 'statuses/user_timeline'
     this.tweetUrl = 'statuses/show'
   }
 
@@ -25,10 +26,6 @@ class twitter {
     }
   }
 
-  async search (query) {
-    return await this.request(this.searchUrl, query)
-  }
-
   /**
   * @params {Object} query - place to search
   *
@@ -37,8 +34,28 @@ class twitter {
     return await this.request(this.geoUrl, query)
   }
 
-  async user (query) {
-    return await this.request(this.userUrl, query)
+  async user (username, query) {
+    return await this.request(this.userUrl + `/${username}`, query)
+  }
+
+  async search (query) {
+    console.log('In search')
+    return await this.request(this.searchUrl, query)
+  }
+
+  async userTweets (query) {
+    console.log('In user')
+    return { statuses: await this.request(this.userTweetsUrl, query) }
+  }
+
+  /**
+  * @params {String} endpoint - Endpoint name
+  * @params {Object} query - place to search
+  *
+  * @returns Next tweet page
+  */
+  async nextTweets (endpoint, query) {
+    return await this[endpoint](query)
   }
 
   /**

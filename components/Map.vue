@@ -10,7 +10,6 @@
 </template>
 
 <script>
-import { core } from '../common/core'
 export default {
   name: 'Map',
   data () {
@@ -22,13 +21,11 @@ export default {
     this.markers = []
   },
   methods: {
-    async addMarker (event) {
+    addMarker (event) {
       this.markers.push(event.latlng)
       const coordinates = event.latlng
-      const geocode = 'geocode:' + coordinates.lat + ',' + coordinates.lng + ',' + '5km'
-      const tweets = await core.search(geocode)
-      // TODO: Passing tweets to a sidebar component to render
-      console.log(tweets)
+      const geocode = coordinates.lat + ',' + coordinates.lng + ',' + '10km'
+      this.$emit('mapClick', geocode)
     }
   }
 }

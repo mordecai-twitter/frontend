@@ -1,16 +1,11 @@
 <template>
-  <div class="container">
-    <Map />
-  </div>
+  <div class="container" />
 </template>
 
 <script lang="js">
-import Map from '../components/Map'
 
 export default {
-  components: {
-    Map
-  }
+
 }
 
 </script>

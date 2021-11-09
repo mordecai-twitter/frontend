@@ -12,7 +12,7 @@
       bg="#16202c"
       color="white"
     >
-      <p><span v-html="highlightedTweet"></span></p>
+      <p><span v-html="highlightedTweet" /></p>
     </c-box>
   </nuxt-link>
 </template>
