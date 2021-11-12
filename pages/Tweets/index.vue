@@ -1,49 +1,48 @@
 <template lang="html">
   <div>
-    <c-flex>
-      <c-flex direction="column" m="2em" align="center">
-        <c-flex w="60em" justify="center">
-          <c-form-control>
-            <c-select v-model="searchType" bg="#16202c" placeholder="Search by">
-              <option value="keyword">Keyword</option>
-              <option value="user">User</option>
-            </c-select>
-          </c-form-control>
-          <c-input
-            v-model="query"
-            pl="1em"
-            variant="flushed"
-            bg="#16202c"
-            w="35%"
-            type="text"
-            placeholder="Insert here some text..."
-            ml="1em"
-          />
-          <c-input
-            v-model="place"
-            pl="1em"
-            variant="flushed"
-            bg="#16202c"
-            w="35%"
-            type="text"
-            placeholder="Insert Location Here..."
-            ml="1em"
-          />
-          <c-button variant-color="black" type="button" name="" value="Search" @click="search">Search</c-button>
-        </c-flex>
-        <!-- TODO @Donnoh: disabilita recent quando siamo alla prima pagina. Disabilta temporaneamente i bottoni fino a quando non vengono caricati i tweeet -->
-        <br>
-        <c-flex w="30em" justify="space-evenly">
-          <button v-if="currentPage" type="button" name="button" @click="prevPage">Recent</button>
-          <button type="button" name="button" @click="nextPage">Older</button>
-        </c-flex>
+        <c-flex m="2em">
+          <c-flex w="50vw" direction="column" justify="left" position="fixed" mt="2em">
+            <c-form-control>
+              <c-select v-model="searchType" bg="#16202c" placeholder="Search by">
+                <option value="keyword">Keyword</option>
+                <option value="user">User</option>
+              </c-select>
+            </c-form-control>
+            <c-input
+              v-model="query"
+              pl="1em"
+              variant="flushed"
+              bg="#16202c"
+              type="text"
+              placeholder="Insert here some text..."
+              ml="1em"
+              w="70%"
+            />
+            <c-input
+              v-model="place"
+              pl="1em"
+              variant="flushed"
+              bg="#16202c"
+              type="text"
+              placeholder="Insert Location Here..."
+              ml="1em"
+              w="70%"
+            />
+            <c-button variant-color="black" type="button" name="" value="Search" @click="search">Search</c-button>
+            <Map @mapClick="displayMapTweets" />
+          </c-flex>
+          <c-flex direction="column" align="flex-end" p="3em" w="100%">
+            <c-flex w="40%">
+              <c-flex justify="flex-start"><button type="button" v-if="this.tweets.length > 0" name="button" @click="nextPage">Older</button></c-flex>
 
-        <c-flex direction="column">
-          <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" />
+              <c-flex justify="flex-end" w="100%"><button v-if="currentPage" type="button" name="button" @click="prevPage">Recent</button></c-flex>
+
+            </c-flex>
+            <c-flex direction="column" w="40%">
+              <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" />
+            </c-flex>
+          </c-flex>
         </c-flex>
-      </c-flex>
-    </c-flex>
-    <Map @mapClick="displayMapTweets" />
   </div>
 </template>
 

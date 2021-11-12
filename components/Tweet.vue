@@ -6,7 +6,6 @@
       p="1em"
       border-color="#8898a5"
       border-width="1px"
-      w="40em"
       m="0.5em"
       rounded="lg"
       bg="#16202c"
