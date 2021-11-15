@@ -1,10 +1,10 @@
 <template lang="html">
   <div id="map-wrap" :style="{ height: '60vh', width: '100%' }">
-    <client-only >
+    <client-only>
       <l-map id="map" :zoom="13" :center="[44.494888,11.342616]" @click="addMarker">
         <l-tile-layer url="http://{s}.tile.osm.org/{z}/{x}/{y}.png" />
-        <l-circle-marker :radius="circleRadius" v-show="marker" :lat-lng="marker ? marker.coordinates : undefined">
-          <l-tooltip ref="activityPopup" v-if="marker" :lat-lng="marker ? marker.coordinates : undefined" :options="{maxWidth: 200, maxHeight: 200, permanent: true, direction: 'top', opacity: 1}" id="ciao">
+        <l-circle-marker v-show="marker" :radius="circleRadius" :lat-lng="marker ? marker.coordinates : undefined">
+          <l-tooltip v-if="marker" ref="activityPopup" class="tooltip" :lat-lng="marker ? marker.coordinates : undefined" :options="{permanent: true, direction: 'top', opacity: 1}">
             <ActivityChart :tweets="marker.tweets" />
           </l-tooltip>
         </l-circle-marker>
@@ -12,8 +12,8 @@
     </client-only>
     <c-input-group id="input-group" w="20%" size="sm" z-index="200">
       <c-input-left-addon>Radius:</c-input-left-addon>
-      <c-input color="black"  type="number" v-model="circleRadius" />
-      <c-input-right-addon></c-input-right-addon>
+      <c-input v-model.number="circleRadius" color="black" type="number" />
+      <c-input-right-addon />
     </c-input-group>
   </div>
 </template>
@@ -21,6 +21,9 @@
 <script>
 export default {
   name: 'Map',
+  props: {
+    activity: Array
+  },
   data () {
     return {
       marker: Object,
@@ -45,14 +48,16 @@ export default {
       const geocode = coordinates.lat + ',' + coordinates.lng + ',' + this.circleRadius + 'km'
       this.$emit('mapClick', geocode)
     }
-  },
-  props: {
-    activity: Array
   }
 }
 </script>
 
 <style lang="css" scoped>
+
+.tooltip{
+  max-width: 13em
+}
+
 div {
   color: black;
 }

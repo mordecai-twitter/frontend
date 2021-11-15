@@ -67,6 +67,14 @@ class Paginator {
     }
     return this.index
   }
+
+  /**
+  * @summary Get the oldest tweet
+  * @returns Return the oldest tweet
+  */
+  getOldest () {
+    return this.tweets[this.tweets.length - 1]
+  }
 }
 
 class Core {
@@ -78,6 +86,12 @@ class Core {
     this.api = new Twitter()
     this.since_id = ''
     this.max_id = ''
+  }
+
+  addDays (date, days) {
+    const result = new Date(date)
+    result.setDate(result.getDate() + days)
+    return result.toISOString().split('T')[0]
   }
 
   /**
@@ -129,6 +143,38 @@ class Core {
     } catch (e) {
       return this.handleError(e)
     }
+  }
+
+  /**
+  * @summary Get the tweets in the past days
+  * @params {String} keyword - Text query
+  * @params {Objetc} query - Query object
+  * @param {Number} days - Number of days back in the past
+  * @return {Object[]} geolocalized tweets matching query and place parameters
+  */
+  async recentTweets (keyword, query, days) {
+    const endDate = Date.parse(this.addDays(new Date(), -days))
+    const dataSet = []
+    query = {
+      result: 'recent',
+      count: 100,
+      ...query
+    }
+    try {
+      const page = await this.search(keyword, query)
+      if (Date.parse(page.getOldest().created_at) > endDate) {
+        dataSet.push(...page.getTweets())
+      }
+      while (Date.parse(page.getOldest().created_at) > endDate) {
+        console.log(Date.parse(page.getOldest().created_at), endDate)
+        await page.next()
+        dataSet.push(...page.getTweets())
+      }
+    } catch (err) {
+      console.log(err)
+    }
+    console.log(dataSet)
+    return dataSet
   }
 }
 
