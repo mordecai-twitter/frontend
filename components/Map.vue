@@ -5,7 +5,7 @@
         <l-tile-layer url="http://{s}.tile.osm.org/{z}/{x}/{y}.png" />
         <l-circle-marker :radius="circleRadius" v-show="marker" :lat-lng="marker ? marker.coordinates : undefined">
           <l-tooltip ref="activityPopup" v-if="marker" :lat-lng="marker ? marker.coordinates : undefined" :options="{maxWidth: 200, maxHeight: 200, permanent: true, direction: 'top', opacity: 1}" id="ciao">
-            <ActivityChart />
+            <ActivityChart :tweets="marker.tweets" />
           </l-tooltip>
         </l-circle-marker>
       </l-map>
@@ -40,6 +40,7 @@ export default {
           { created_at: '2/1/2013 11:37:08 AM' },
           { created_at: '2/1/2013 15:37:08 AM' }]
       }
+
       const coordinates = event.latlng
       const geocode = coordinates.lat + ',' + coordinates.lng + ',' + this.circleRadius + 'km'
       this.$emit('mapClick', geocode)
