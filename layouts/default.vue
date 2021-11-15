@@ -19,13 +19,16 @@ import {
   CBox
 } from '@chakra-ui/vue'
 
+import Navbar from '../components/Navbar'
+
 export default {
   name: 'App',
   components: {
     CThemeProvider,
     CColorModeProvider,
     CReset,
-    CBox
+    CBox,
+    Navbar
   }
 }
 </script>

@@ -2,12 +2,13 @@
   <c-flex direction="column" m="2em" align="center">
     <c-flex w="60em" justify="center">
       <c-form-control>
-        <c-select v-model="searchType" bg="#16202c" placeholder="Search by">
+        <c-select id="searchTypesSelect" v-model="searchType" bg="#16202c" placeholder="Search by">
           <option value="keyword">Keyword</option>
           <option value="user">User</option>
         </c-select>
       </c-form-control>
       <c-input
+        id="textInput"
         v-model="query"
         pl="1em"
         variant="flushed"
@@ -27,27 +28,40 @@
         placeholder="Insert Location Here..."
         ml="1em"
       />
-      <c-button variant-color="black" type="button" name="" value="Search" @click="search">Search</c-button>
+      <c-button
+        id="searchButton"
+        variant-color="black"
+        type="button"
+        name=""
+        value="Search"
+        @click="search"
+      >Search</c-button>
     </c-flex>
     <!-- TODO @Donnoh: disabilita recent quando siamo alla prima pagina. Disabilta temporaneamente i bottoni fino a quando non vengono caricati i tweeet -->
     <br>
     <c-flex w="30em" justify="space-evenly">
-      <button v-if="!currentPage" type="button" name="button" @click="prevPage">Recent</button>
-      <button type="button" name="button" @click="nextPage">Older</button>
+      <button v-if="!currentPage" id="recentButton" type="button" name="button" @click="prevPage">Recent</button>
+      <button id="olderButton" type="button" name="button" @click="nextPage">Older</button>
     </c-flex>
 
-    <c-flex direction="column">
+    <c-flex id="tweetsContainer" direction="column">
       <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" />
     </c-flex>
   </c-flex>
 </template>
 
 <script>
+import { CFlex, CFormControl, CSelect, CInput, CButton } from '@chakra-ui/vue'
 import Tweet from '../../components/Tweet'
 import { core } from '../../common/core'
 export default {
   components: {
-    Tweet
+    Tweet,
+    CFlex,
+    CFormControl,
+    CSelect,
+    CInput,
+    CButton
   },
   data () {
     return {

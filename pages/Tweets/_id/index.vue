@@ -12,9 +12,15 @@
 
 <script>
 
+import { CBox, CFlex, CButton } from '@chakra-ui/vue'
 import { core } from '../../../common/core'
 
 export default {
+  components: {
+    CBox,
+    CFlex,
+    CButton
+  },
   data () {
     return {
       tweet: {},

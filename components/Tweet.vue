@@ -1,7 +1,7 @@
-
 <template>
   <nuxt-link :to="'tweets/' + tweet.id_str">
     <c-box
+      id="tweetBox"
       class="tweet"
       p="1em"
       border-color="#8898a5"
@@ -12,14 +12,19 @@
       bg="#16202c"
       color="white"
     >
-      <p><span v-html="highlightedTweet"></span></p>
+      <p><span v-html="highlightedTweet" /></p>
     </c-box>
   </nuxt-link>
 </template>
 
 <script>
+import { CBox } from '@chakra-ui/vue'
+
 export default {
   name: 'Tweet',
+  components: {
+    CBox
+  },
   props: {
     tweet: {
       required: true,

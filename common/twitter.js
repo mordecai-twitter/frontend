@@ -1,7 +1,7 @@
-const axios = require('axios').default
+import axios from 'axios'
 
 class twitter {
-  #handleError (err) {
+  handleError (err) {
     console.log(err)
   }
 
