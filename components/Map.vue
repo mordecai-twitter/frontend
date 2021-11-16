@@ -19,6 +19,9 @@
 </template>
 
 <script>
+
+import { core } from '../common/core'
+
 export default {
   name: 'Map',
   props: {
@@ -35,17 +38,13 @@ export default {
     this.circleRadius = 10
   },
   methods: {
-    addMarker (event) {
-      this.marker = {
-        coordinates: event.latlng,
-        tweets: [{ created_at: '2/1/2013 7:37:08 AM' },
-          { created_at: '2/1/2013 12:37:08 AM' },
-          { created_at: '2/1/2013 11:37:08 AM' },
-          { created_at: '2/1/2013 15:37:08 AM' }]
-      }
-
+    async addMarker (event) {
       const coordinates = event.latlng
       const geocode = coordinates.lat + ',' + coordinates.lng + ',' + this.circleRadius + 'km'
+      this.marker = {
+        coordinates: event.latlng,
+        tweets: await core.dayTweet('', { geocode }, new Date())
+      }
       this.$emit('mapClick', geocode)
     }
   }

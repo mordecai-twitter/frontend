@@ -86,12 +86,7 @@ class Core {
     this.api = new Twitter()
     this.since_id = ''
     this.max_id = ''
-  }
-
-  addDays (date, days) {
-    const result = new Date(date)
-    result.setDate(result.getDate() + days)
-    return result.toISOString().split('T')[0]
+    this.date = new DateUtils()
   }
 
   /**
@@ -146,6 +141,53 @@ class Core {
   }
 
   /**
+  * @summary Get the tweets of the indicated date in the previous week
+  * @params {String} keyword - Text query
+  * @params {Objetc} query - Query object
+  * @param {Number} day - Date
+  * @return {Object[]} geolocalized tweets matching query and place parameters
+  */
+  async dayTweet (keyword, query, date) {
+    const endDate = new Date(date)
+    endDate.setUTCDate(endDate.getUTCDate() - 7)
+    endDate.setUTCHours(0, 0, 1)
+
+    const queryDate = new Date(endDate)
+    queryDate.setUTCDate(queryDate.getUTCDate() + 1)
+
+    const dataSet = []
+    query = {
+      q: keyword,
+      result: 'recent',
+      count: 100,
+      until: `${queryDate.getUTCFullYear()}-${queryDate.getUTCMonth() + 1}-${queryDate.getUTCDate()}`,
+      ...query
+    }
+    console.log(query)
+    try {
+      const page = await this.search(keyword, query)
+      if (this.date.compare(page.getOldest().created_at, endDate) === 1) {
+        dataSet.push(...page.getTweets())
+      }
+      // Iterate until you find a tweet before the required day
+      while (this.date.compare(page.getOldest().created_at, endDate) === 1) {
+        await page.next()
+        if (this.date.compare(page.getOldest().created_at, endDate) === 1) {
+          dataSet.push(...page.getTweets())
+        } else {
+          console.log({ latsPage: page.getTweets() })
+          dataSet.push(...page.getTweets().filter(tweet =>
+            this.date.compare(tweet.created_at, endDate) === 1
+          ))
+        }
+      }
+    } catch (err) {
+      console.log(err)
+    }
+    return dataSet
+  }
+
+  /**
   * @summary Get the tweets in the past days
   * @params {String} keyword - Text query
   * @params {Objetc} query - Query object
@@ -175,6 +217,28 @@ class Core {
     }
     console.log(dataSet)
     return dataSet
+  }
+}
+
+class DateUtils {
+  addDays (date, days) {
+    const result = new Date(date)
+    result.setDate(result.getDate() + days)
+    return result
+  }
+
+  parseDate (date) {
+    return new Date(date).toISOString().split('T')[0]
+  }
+
+  compare (date1, date2) {
+    date1 = Date.parse(date1)
+    date2 = Date.parse(date2)
+    if (date1 > date2) { return 1 } else if (date1 < date2) {
+      return -1
+    } else {
+      return 0
+    }
   }
 }
 
