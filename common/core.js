@@ -187,6 +187,30 @@ class Core {
     return dataSet
   }
 
+  async dayTweetCount (query, date) {
+    const endDate = new Date(date)
+    endDate.setUTCDate(endDate.getUTCDate() - 6)
+    endDate.setUTCHours(0, 0, 1)
+
+    const queryDate = new Date(endDate)
+    queryDate.setUTCDate(queryDate.getUTCDate() + 1)
+
+    const dataSet = []
+    query = {
+      start_time: endDate.toISOString(),
+      end_time: queryDate.toISOString(),
+      ...query
+    }
+    console.log(query)
+    try {
+      const res = await this.api.countTweets(query)
+      console.log(res)
+    } catch (err) {
+      console.log(err)
+    }
+    return dataSet
+  }
+
   /**
   * @summary Get the tweets in the past days
   * @params {String} keyword - Text query
@@ -217,6 +241,15 @@ class Core {
     }
     console.log(dataSet)
     return dataSet
+  }
+
+  async getGeo (placeId) {
+    try {
+      const res = await this.api.geoId(placeId)
+      return res.centroid
+    } catch (err) {
+      this.handleError(err)
+    }
   }
 }
 

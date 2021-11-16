@@ -6,7 +6,7 @@ export default {
   extends: Bar,
   props: ['tweets'],
   mounted () {
-    console.log('Data: ', this.tweets)
+    // console.log('Data: ', this.tweets)
     this.renderChart(
       {
         labels: [...Array(24).keys()],

@@ -29,7 +29,7 @@
           w="70%"
         />
         <c-button variant-color="black" type="button" name="" value="Search" @click="search">Search</c-button>
-        <Map @mapClick="displayMapTweets" />
+        <Map :tweets="tweets" @mapClick="displayMapTweets" />
       </c-flex>
       <c-flex direction="column" align="flex-end" p="3em" w="100%">
         <c-flex w="40%">

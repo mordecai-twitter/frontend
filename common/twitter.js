@@ -7,12 +7,17 @@ class twitter {
 
   constructor () {
     this.baseURL = 'https://site202137.tw.cs.unibo.it/api/'
+    this.v2Url = '2/'
+
     this.api = axios.create({ baseURL: this.baseURL })
     this.searchUrl = 'search/tweets'
     this.geoUrl = 'geo/search'
     this.userUrl = 'user'
     this.userTweetsUrl = 'statuses/user_timeline'
     this.tweetUrl = 'statuses/show'
+    this.geoIdUrl = 'geo/id'
+
+    this.countUrl = this.v2Url + 'tweets/counts/recent'
   }
 
   async request (url, query) {
@@ -64,6 +69,14 @@ class twitter {
   */
   async singleTweet (id) {
     return await this.request(this.tweetUrl + `/${id}`)
+  }
+
+  async countTweets (query) {
+    return await this.request(this.countUrl, query)
+  }
+
+  async geoId (id) {
+    return await this.request(this.geoIdUrl + `/${id}`)
   }
 }
 
