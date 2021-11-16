@@ -10,6 +10,6 @@ node {
     }
   }
   stage('Test') {
-    sh "ls -al"
+    sh "npm test"
   }
 }
