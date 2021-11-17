@@ -1,7 +1,7 @@
 <template>
   <div class="container">
       <c-flex direction="column" align="center">
-            <c-heading as="h1" size="2xl">BUONGIORNISSIMO</c-heading>
+            <c-heading as="h1" size="2xl">Vuoi farla geolocalizzarla? Allora questo sito lo devi usarlo</c-heading>
             <c-heading as="h2" size="md">qua puoi vedere i tweet filtrarli geolocalizzarli tutto fra</c-heading>
             <c-heading as="h1" size="2xl">☀☕</c-heading>
             <c-heading as="h3" size="md">clicca su "Tweets" che sta là la vera app</c-heading>
