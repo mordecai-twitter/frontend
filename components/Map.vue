@@ -3,7 +3,7 @@
     <client-only>
       <l-map id="map" :zoom="13" :center="[44.494888,11.342616]" @click="addMarker">
         <l-tile-layer url="http://{s}.tile.osm.org/{z}/{x}/{y}.png" />
-        <l-circle-marker
+        <l-circle
           v-show="marker"
           :radius="circleRadius"
           :lat-lng="marker ? marker.coordinates : undefined"
@@ -11,7 +11,7 @@
           <!--<l-tooltip v-if="marker" ref="activityPopup" class="tooltip" :lat-lng="marker ? marker.coordinates : undefined" :options="{permanent: true, direction: 'top', opacity: 1}">
             <ActivityChart :tweets="marker.tweets" />
           </l-tooltip>-->
-        </l-circle-marker>
+        </l-circle>
         <l-marker v-for="geoTweet in geoTweets" :key="geoTweet.id" :icon="geoTweet.icon" :lat-lng="geoTweet.geo">
           <l-popup>
             <h2>Tweet by: {{ geoTweet.user.name }}</h2>
@@ -20,10 +20,10 @@
         </l-marker>
       </l-map>
     </client-only>
-    <c-input-group id="input-group" w="20%" size="sm" z-index="200">
+    <c-input-group id="input-group" w="15em" size="sm" z-index="200">
       <c-input-left-addon>Radius:</c-input-left-addon>
       <c-input v-model.number="circleRadius" color="black" type="number" />
-      <c-input-right-addon />
+      <c-input-right-addon>Meters</c-input-right-addon>
     </c-input-group>
   </div>
 </template>
@@ -65,13 +65,13 @@ export default {
   },
   created () {
     this.marker = null
-    this.circleRadius = 10
+    this.circleRadius = 1000
     console.log(this.geoTweets)
   },
   methods: {
     addMarker (event) {
       const coordinates = event.latlng
-      const geocode = coordinates.lat + ',' + coordinates.lng + ',' + this.circleRadius + 'km'
+      const geocode = coordinates.lat + ',' + coordinates.lng + ',' + this.circleRadius / 1000 + 'km'
       this.marker = {
         coordinates: event.latlng,
         tweets: [] // await core.dayTweet('', { geocode }, new Date())
@@ -100,6 +100,6 @@ div {
 #input-group {
   position: absolute;
   top: 0;
-  right: 0;
+  right: 1em;
 }
 </style>

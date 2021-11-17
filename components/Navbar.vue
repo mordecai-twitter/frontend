@@ -7,6 +7,7 @@
     w="100vw"
     bg="#16202c"
     top="0"
+    zIndex="2000"
   >
     <NuxtLink to="/">
       <c-heading size="md">Home</c-heading>
