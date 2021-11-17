@@ -3,12 +3,21 @@
     <client-only>
       <l-map id="map" :zoom="13" :center="[44.494888,11.342616]" @click="addMarker">
         <l-tile-layer url="http://{s}.tile.osm.org/{z}/{x}/{y}.png" />
-        <l-circle-marker v-show="marker" :radius="circleRadius" :lat-lng="marker ? marker.coordinates : undefined">
+        <l-circle-marker
+          v-show="marker"
+          :radius="circleRadius"
+          :lat-lng="marker ? marker.coordinates : undefined"
+        >
           <!--<l-tooltip v-if="marker" ref="activityPopup" class="tooltip" :lat-lng="marker ? marker.coordinates : undefined" :options="{permanent: true, direction: 'top', opacity: 1}">
             <ActivityChart :tweets="marker.tweets" />
           </l-tooltip>-->
         </l-circle-marker>
-        <l-marker v-for="geoTweet in geoTweets" :key="geoTweet.id" :lat-lng="geoTweet.geo" />
+        <l-marker v-for="geoTweet in geoTweets" :key="geoTweet.id" :icon="geoTweet.icon" :lat-lng="geoTweet.geo">
+          <l-popup>
+            <h2>Tweet by: {{ geoTweet.user.name }}</h2>
+            <p> {{ geoTweet.text }} </p>
+          </l-popup>
+        </l-marker>
       </l-map>
     </client-only>
     <c-input-group id="input-group" w="20%" size="sm" z-index="200">
@@ -21,6 +30,7 @@
 
 <script>
 
+import { icon } from 'leaflet'
 import { core } from '../common/core'
 
 export default {
@@ -42,7 +52,9 @@ export default {
       console.log(filtered)
       for (const tweet of filtered) {
         const longLat = await core.getGeo(tweet.place.id)
+        console.log(tweet.place)
         tweet.geo = [longLat[1], longLat[0]]
+        tweet.icon = icon({ iconUrl: tweet.user.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
       }
       this.geoTweets = filtered
     }

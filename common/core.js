@@ -93,8 +93,8 @@ class Core {
   * Search geolocalized tweets
   * @params {string} query - Text to search
   * @params {string} place - Location
-  * @return {Object[]} geolocalized tweets matching query and place parameters
   *
+  * @return {Object[]} Geolocalized tweets matching query and place parameters
   */
   async search (keyword, query = {}, place = '', radius = '10km') {
     try {
@@ -115,9 +115,9 @@ class Core {
 
   /**
   * Search a single tweets
-  * @params {string} id - id of tweet to search
-  * @return {Object} tweet with the defined id
+  * @params {string} id - Tweet id
   *
+  * @return {Object} tweet with the defined id
   */
   async singleTweet (id) {
     try {
@@ -128,6 +128,14 @@ class Core {
     }
   }
 
+  /**
+  * @summary User tweets timeline
+  * @params {String} keyword - Text query
+  * @params {Object} query - Query object
+  * @param {Number} day - Date
+  *
+  * @return {Paginator} Paginator object
+  */
   async userTimeline (username, query = {}) {
     try {
       let response = await this.api.user(username)
@@ -145,6 +153,7 @@ class Core {
   * @params {String} keyword - Text query
   * @params {Objetc} query - Query object
   * @param {Number} day - Date
+  *
   * @return {Object[]} geolocalized tweets matching query and place parameters
   */
   async dayTweet (keyword, query, date) {
@@ -216,6 +225,7 @@ class Core {
   * @params {String} keyword - Text query
   * @params {Objetc} query - Query object
   * @param {Number} days - Number of days back in the past
+  *
   * @return {Object[]} geolocalized tweets matching query and place parameters
   */
   async recentTweets (keyword, query, days) {
