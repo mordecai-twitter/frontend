@@ -853,4 +853,14 @@ function getTweetsData () {
   }
 }
 
-export { getTweetsData }
+function getTweetsBetween (start, end) {
+  const data = getTweetsData()
+  data.statuses = data.statuses.slice(start, end)
+  return data
+}
+
+function getOnlyNTweetsData (n) {
+  return getTweetsBetween(0, n)
+}
+
+export default { getTweetsData, getOnlyNTweetsData, getTweetsBetween }

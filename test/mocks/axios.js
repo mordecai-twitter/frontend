@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 function createOkRequest (data) {
   return {
     data,
@@ -5,4 +7,8 @@ function createOkRequest (data) {
   }
 }
 
-export { createOkRequest }
+function mockOkRequest (data) {
+  axios.create().get.mockResolvedValueOnce(createOkRequest(data))
+}
+
+export { mockOkRequest }
