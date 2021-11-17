@@ -30,8 +30,12 @@
 
 <script>
 
-import { icon } from 'leaflet'
 import { core } from '../common/core'
+const isBrowser = typeof window !== 'undefined'
+let leaflet
+if (isBrowser) {
+  leaflet = require('leaflet')
+}
 
 export default {
   name: 'Map',
@@ -54,7 +58,7 @@ export default {
         const longLat = await core.getGeo(tweet.place.id)
         console.log(tweet.place)
         tweet.geo = [longLat[1], longLat[0]]
-        tweet.icon = icon({ iconUrl: tweet.user.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
+        tweet.icon = leaflet.icon({ iconUrl: tweet.user.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
       }
       this.geoTweets = filtered
     }
