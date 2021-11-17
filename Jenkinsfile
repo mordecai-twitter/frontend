@@ -10,6 +10,7 @@ node {
     }
   }
   stage('Test') {
+    sh "ls -al"
     sh "npm install --save"
     sh "npm test"
   }
@@ -18,6 +19,11 @@ node {
     sh "npm install"
     sh "yarn generate"
     sh "scp -r dist/* andrea.zecca3@marullo.cs.unibo.it:/home/web/site202137/html"
+  }
+  post { 
+        always { 
+            cleanWs()
+        }
   }
 }
 
