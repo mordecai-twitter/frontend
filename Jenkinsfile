@@ -9,11 +9,6 @@ node {
       sh "${scannerHome}/bin/sonar-scanner"
     }
   }
-  stage('Test') {
-    sh "ls -al"
-    sh "npm install --save"
-    sh "npm test"
-  }
   stage('Deploy') {
     sh "ssh-keyscan -H marullo.cs.unibo.it >> ~/.ssh/known_hosts"
     sh "npm install"
