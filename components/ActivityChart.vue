@@ -4,40 +4,57 @@ import { Bar } from 'vue-chartjs'
 
 export default {
   extends: Bar,
-  props: ['tweets'],
+  props: ['activity'],
+  data () {
+    return {
+      stepSize: Number
+    }
+  },
+  watch: {
+    activity () {
+      this.displayGraph()
+    }
+  },
   mounted () {
-    // console.log('Data: ', this.tweets)
-    this.renderChart(
-      {
-        labels: [...Array(24).keys()],
-        datasets: [
-          {
-            label: 'Activity',
-            backgroundColor: '#f87979',
-            data: this.activityHistogram(this.tweets)
-          }
-        ]
-      },
-      {
-        responsive: true,
-        maintainAspectRatio: true,
-        scales: {
-          yAxes: [
-            {
-              ticks: {
-                beginAtZero: true
-              }
-            }
-          ]
-        }
-      })
+    this.displayGraph()
   },
   methods: {
-    activityHistogram (tweets) {
+    displayGraph () {
+      if (this.activity) {
+        this.renderChart(
+          {
+            labels: [...Array(24).keys()],
+            datasets: [
+              {
+                label: 'Activity',
+                backgroundColor: '#f87979',
+                data: this.activityHistogram(this.activity)
+              }
+            ]
+          },
+          {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+              yAxes: [
+                {
+                  ticks: {
+                    beginAtZero: true,
+                    min: 0
+                  }
+                }
+              ]
+            }
+          }
+        )
+      }
+    },
+    activityHistogram (activity) {
+      console.log(activity)
       const histogram = [...Array(24).keys()].map(() => 0)
-      for (const tweet of tweets) {
-        const hour = new Date(tweet.created_at).getHours()
-        histogram[hour]++
+      for (const timeSlot of activity) {
+        const hour = new Date(timeSlot.start).getHours()
+        histogram[hour] += timeSlot.tweet_count
       }
       return histogram
     }

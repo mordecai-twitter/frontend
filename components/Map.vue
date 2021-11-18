@@ -8,9 +8,9 @@
           :radius="circleRadius"
           :lat-lng="marker ? marker.coordinates : undefined"
         >
-          <!--<l-tooltip v-if="marker" ref="activityPopup" class="tooltip" :lat-lng="marker ? marker.coordinates : undefined" :options="{permanent: true, direction: 'top', opacity: 1}">
-            <ActivityChart :tweets="marker.tweets" />
-          </l-tooltip>-->
+          <l-tooltip v-if="marker" ref="activityPopup" class="tooltip" :lat-lng="marker ? marker.coordinates : undefined" :options="{permanent: true, direction: 'top', opacity: 1}">
+            <ActivityChart :activity="marker.activity" />
+          </l-tooltip>
         </l-circle>
         <l-marker v-for="geoTweet in geoTweets" :key="geoTweet.id" :icon="geoTweet.icon" :lat-lng="geoTweet.geo">
           <l-popup>
@@ -54,27 +54,35 @@ export default {
     async tweets () {
       const filtered = this.tweets.filter(tweet => tweet.place)
       console.log(filtered)
+      const geoTweets = []
       for (const tweet of filtered) {
         const longLat = await core.getGeo(tweet.place.id)
-        console.log(tweet.place)
-        tweet.geo = [longLat[1], longLat[0]]
-        tweet.icon = leaflet.icon({ iconUrl: tweet.user.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
+        if (longLat) {
+          console.log(tweet.place)
+          tweet.geo = [longLat[1], longLat[0]]
+          tweet.icon = leaflet.icon({ iconUrl: tweet.user.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
+          geoTweets.push(tweet)
+        }
       }
-      this.geoTweets = filtered
+      this.geoTweets = geoTweets
     }
   },
   created () {
     this.marker = null
     this.circleRadius = 1000
+    this.geoTweets = []
     console.log(this.geoTweets)
   },
   methods: {
-    addMarker (event) {
+    async addMarker (event) {
       const coordinates = event.latlng
       const geocode = coordinates.lat + ',' + coordinates.lng + ',' + this.circleRadius / 1000 + 'km'
+
+      const activity = await core.dayTweetCount({ query: `point_radius:[${coordinates.lng} ${coordinates.lat} ${this.circleRadius / 1000}km]` }, new Date())
+      console.log('Activity: ', activity)
       this.marker = {
         coordinates: event.latlng,
-        tweets: [] // await core.dayTweet('', { geocode }, new Date())
+        activity
       }
       this.$emit('mapClick', geocode)
     }

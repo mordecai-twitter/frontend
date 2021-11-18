@@ -80,6 +80,7 @@ class Paginator {
 class Core {
   handleError (err) {
     console.log(err)
+    return undefined
   }
 
   constructor () {
@@ -204,20 +205,19 @@ class Core {
     const queryDate = new Date(endDate)
     queryDate.setUTCDate(queryDate.getUTCDate() + 1)
 
-    const dataSet = []
+    console.log('Making query...')
     query = {
       start_time: endDate.toISOString(),
       end_time: queryDate.toISOString(),
+      granularity: 'hour',
       ...query
     }
     console.log(query)
     try {
-      const res = await this.api.countTweets(query)
-      console.log(res)
+      return (await this.api.countTweets(query)).data
     } catch (err) {
       console.log(err)
     }
-    return dataSet
   }
 
   /**
@@ -258,7 +258,7 @@ class Core {
       const res = await this.api.geoId(placeId)
       return res.centroid
     } catch (err) {
-      this.handleError(err)
+      return this.handleError(err)
     }
   }
 }
