@@ -172,7 +172,17 @@ class Core {
   }
 
   async sentiment (query) {
-    return await this.api.sentiment(query)
+    try {
+      const analysis = await this.api.sentiment(query)
+      const total = analysis.positiveCount + analysis.negativeCount + analysis.neutralCount
+      analysis.chartdata = [(analysis.positiveCount * 100 / total).toFixed(2), (analysis.negativeCount * 100 / total).toFixed(2), (analysis.neutralCount * 100 / total).toFixed(2)]
+      analysis.best.tweet = await this.singleTweet(analysis.best.tweet.id)
+      analysis.worst.tweet = await this.singleTweet(analysis.worst.tweet.id)
+      return analysis
+    } catch (err) {
+      console.log(err)
+      return undefined
+    }
   }
 
   async getGeo (placeId) {

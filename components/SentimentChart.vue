@@ -1,9 +1,9 @@
 
 <script>
-import { Pie } from 'vue-chartjs'
+import { Doughnut } from 'vue-chartjs'
 
 export default {
-  extends: Pie,
+  extends: Doughnut,
   props: {
     title: {
       type: String
@@ -27,31 +27,37 @@ export default {
     }
   },
   mounted () {
-    this.gradient = this.$refs.canvas
-      .getContext('2d')
-      .createLinearGradient(0, 0, 0, 450)
-    this.gradient2 = this.$refs.canvas
-      .getContext('2d')
-      .createLinearGradient(0, 0, 0, 450)
-    this.gradient.addColorStop(0, 'rgba(255, 0,0, 0.5)')
-    this.gradient.addColorStop(0.5, 'rgba(255, 0, 0, 0.25)')
-    this.gradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
-
-    this.gradient2.addColorStop(0, 'rgba(0, 231, 255, 0.9)')
-    this.gradient2.addColorStop(0.5, 'rgba(0, 231, 255, 0.25)')
-    this.gradient2.addColorStop(1, 'rgba(0, 231, 255, 0)')
     this.renderChart({
       labels: this.labels,
       datasets: [{
         label: this.title,
         data: this.chartdata,
-        borderColor: '#FC2525',
+        borderColor: 'rgba(255, 255, 255, 0.8)',
         pointBackgroundColor: 'white',
         borderWidth: 1,
         pointBorderColor: 'white',
-        backgroundColor: this.gradient
+        backgroundColor: [
+          'rgb(50,205,50)',
+          'rgba(255, 0, 0, 0.8)',
+          'rgb(255, 205, 86)'
+        ]
       }]
-    }, this.options)
+    }, {
+      tooltips: {
+        callbacks: {
+          label (tooltipItem, data) {
+            return data.labels[tooltipItem.index] + ': ' + data.datasets[0].data[tooltipItem.index] + '%'
+          }
+        }
+      },
+      legend: {
+        labels: {
+          fontColor: 'White',
+          fontSize: 18
+        }
+      }
+    }
+    )
   }
 }
 

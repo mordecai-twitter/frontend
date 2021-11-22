@@ -53,12 +53,10 @@ export default {
   watch: {
     async tweets () {
       const filtered = this.tweets.filter(tweet => tweet.place)
-      console.log(filtered)
       const geoTweets = []
       for (const tweet of filtered) {
         const longLat = await core.getGeo(tweet.place.id)
         if (longLat) {
-          console.log(tweet.place)
           tweet.geo = [longLat[1], longLat[0]]
           tweet.icon = leaflet.icon({ iconUrl: tweet.user.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
           geoTweets.push(tweet)
@@ -71,7 +69,6 @@ export default {
     this.marker = null
     this.circleRadius = 1000
     this.geoTweets = []
-    console.log(this.geoTweets)
   },
   methods: {
     async addMarker (event) {
@@ -79,7 +76,6 @@ export default {
       const geocode = coordinates.lat + ',' + coordinates.lng + ',' + this.circleRadius / 1000 + 'km'
 
       const activity = await core.dayTweetCount({ query: `point_radius:[${coordinates.lng} ${coordinates.lat} ${this.circleRadius / 1000}km]` }, new Date())
-      console.log('Activity: ', activity)
       this.marker = {
         coordinates: event.latlng,
         activity

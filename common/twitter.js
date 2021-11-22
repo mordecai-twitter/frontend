@@ -71,7 +71,6 @@ class twitter {
   * @returns Tweets of the given user
   */
   async search (query) {
-    console.log('In search')
     return await this.request(this.searchUrl, query)
   }
 
@@ -82,7 +81,6 @@ class twitter {
   * @returns Tweets of the given user
   */
   async userTweets (query) {
-    console.log('In user')
     return { statuses: await this.request(this.userTweetsUrl, query) }
   }
 
