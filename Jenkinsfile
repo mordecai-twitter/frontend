@@ -10,11 +10,10 @@ node {
     }
   }
   stage('Test') {
-    sh "ls -al"
     sh "npm install --save"
     try {
       sh "npm test"
-    } catch (err) {
+    }   catch (err) {
         echo "Failed: ${err}"
     }
   }

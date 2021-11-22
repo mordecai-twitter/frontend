@@ -20,6 +20,8 @@ class twitter {
     this.geoIdUrl = 'geo/id'
     // V2 urls
     this.countUrl = this.v2Url + 'tweets/counts/recent'
+    // Custom urls
+    this.sentimentUrl = 'sentiment'
   }
 
   /**
@@ -120,6 +122,15 @@ class twitter {
   */
   async geoId (id) {
     return await this.request(this.geoIdUrl + `/${id}`)
+  }
+
+  /**
+  * @summary Returns the sentiment about a query
+  * @params {Object} query - Tweet place id
+  * @returns - Sentiment analysis
+  */
+  async sentiment (query) {
+    return await this.request(this.sentimentUrl, query)
   }
 }
 

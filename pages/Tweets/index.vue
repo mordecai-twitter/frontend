@@ -9,13 +9,14 @@
       wrap="wrap"
       minWidth="20em">
         <c-form-control w="100%">
-          <c-select v-model="searchType" bg="#16202c" placeholder="Search by">
+          <c-select id="searchTypesSelect" v-model="searchType" bg="#16202c" placeholder="Search by">
             <option value="keyword">Keyword</option>
             <option value="user">User</option>
           </c-select>
         </c-form-control>
         <c-box>
             <c-input
+          id="textInput"
           v-model="query"
           pl="1em"
           variant="flushed"
@@ -34,18 +35,27 @@
             placeholder="Insert Location Here..."
             ml="1em"
             w="97%"
-            />
+          />
         </c-box>
-        <c-button variant-color="black" type="button" name="" value="Search" @click="search">Search</c-button>
+        <c-button
+          id="searchButton"
+          variant-color="black"
+          type="button"
+          name=""
+          value="Search"
+          @click="search">Search</c-button>
         <Map :tweets="tweets" @mapClick="displayMapTweets" />
       </c-flex>
       <c-flex direction="column" p="1em">
         <c-flex>
-          <c-flex justify="flex-start"><button v-if="tweets.length > 0" type="button" name="button" @click="nextPage">Older</button></c-flex>
-          <c-flex justify="flex-end" w="100%"><button v-if="currentPage" type="button" name="button" @click="prevPage">Recent</button></c-flex>
+          <c-flex justify="flex-start"><button v-if="tweets.length > 0" id="olderButton" type="button" name="button" @click="nextPage">Older</button></c-flex>
+          <c-flex justify="flex-end" w="100%"><button v-if="currentPage" id="recentButton" type="button" name="button" @click="prevPage">Recent</button></c-flex>
         </c-flex>
-        <c-flex direction="column">
+        <c-flex id="tweetsContainer" direction="column">
           <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet"/>
+        </c-flex>
+        <c-flex id="sentimentContainer" direction="column">
+          <SentimentChart :chartdata="sentiment" />
         </c-flex>
       </c-flex>
     </c-flex>
@@ -54,11 +64,18 @@
 
 <script>
 import { CFlex, CFormControl, CSelect, CInput, CButton } from '@chakra-ui/vue'
+import SentimentChart from '../../components/SentimentChart'
 import Tweet from '../../components/Tweet'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
 export default {
   components: {
+    SentimentChart,
+    CFlex,
+    CFormControl,
+    CSelect,
+    CInput,
+    CButton,
     Map,
     Tweet
   },
@@ -70,7 +87,8 @@ export default {
       searchType: 'keyword',
       paginator: Object,
       query: '',
-      place: ''
+      place: '',
+      sentiment: {}
     }
   },
   created () {
@@ -91,6 +109,7 @@ export default {
         this.paginator = await core.userTimeline(this.query)
       }
       this.tweets = this.paginator.getTweets()
+      this.sentiment = await core.sentiment(this.query)
     },
     async prevPage () {
       this.currentPage = await this.paginator.prev()
