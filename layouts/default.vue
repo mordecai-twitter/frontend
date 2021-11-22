@@ -4,7 +4,7 @@
       <CColorModeProvider>
         <CBox font-family="body" as="main">
           <CReset />
-          <Navbar />
+          <Navbar/>
           <Nuxt />
         </CBox>
       </CColorModeProvider>

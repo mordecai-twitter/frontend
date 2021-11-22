@@ -43,7 +43,9 @@ export default {
     // https://go.nuxtjs.dev/emotion
     '@nuxtjs/emotion',
     // https://go.nuxtjs.dev/axios
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    // https://github.com/schlunsen/nuxt-leaflet
+    'nuxt-leaflet'
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios

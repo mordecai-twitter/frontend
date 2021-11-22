@@ -6,13 +6,17 @@
       p="1em"
       border-color="#8898a5"
       border-width="1px"
-      w="40em"
       m="0.5em"
       rounded="lg"
       bg="#16202c"
       color="white"
     >
-      <p><span v-html="highlightedTweet" /></p>
+    <c-heading as="h3" size="sm">{{tweet.user.name}}
+        <span class="tag"> @{{tweet.user.screen_name}}</span>
+        <c-tag v-if="tweet.geo != null" size="sm" ml="1em">geo'd by tweet</c-tag>
+    </c-heading>
+      <p><span class="content" v-html="highlightedTweet" /></p>
+      <p class="date">{{this.tweet.created_at}}</p>
     </c-box>
   </nuxt-link>
 </template>
@@ -45,5 +49,17 @@ export default {
 <style>
 .blue {
   color: #1d9bf0
+}
+.tag {
+    color: #a1a1a1;
+    margin-left: 0.5em;
+    font-weight: 400;
+}
+.date {
+    color: #a1a1a1;
+    margin-left: 0.5em;
+    font-size: 0.9em;
+    text-align: right;
+    margin-bottom: -0.5em
 }
 </style>
