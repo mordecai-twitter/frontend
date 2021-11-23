@@ -1,4 +1,6 @@
-node {
+pipeline {
+  agent any
+  tools {nodejs "node"}
   stages{
     stage('SCM') {
       checkout scm
@@ -29,5 +31,5 @@ node {
     always { 
       cleanWs()
     }
-    }
+  }
 }
