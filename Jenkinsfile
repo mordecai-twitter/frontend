@@ -24,7 +24,7 @@ node {
     sh "yarn generate"
     sh "scp -r dist/* andrea.zecca3@marullo.cs.unibo.it:/home/web/site202137/html"
   }
-  stage('Clean up) {
+  stage('Clean up') {
     sh "rm -rf ../mordecai_frontend*"
   }
 }
