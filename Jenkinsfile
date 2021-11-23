@@ -11,6 +11,7 @@ node {
   }
   stage('Test') {
     sh "npm install --save"
+    sh "yarn install --save"
     try {
       sh "npm test"
     }   catch (err) {
