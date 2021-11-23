@@ -22,12 +22,12 @@
 </template>
 
 <script>
-import { CBox } from '@chakra-ui/vue'
+import { CBox, CHeading } from '@chakra-ui/vue'
 
 export default {
   name: 'Tweet',
   components: {
-    CBox
+    CBox, CHeading
   },
   props: {
     tweet: {
@@ -44,7 +44,7 @@ export default {
     }
   },
   created () {
-    console.log(this.tweet)
+    // console.log(this.tweet)
   }
 }
 </script>

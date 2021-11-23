@@ -29,8 +29,11 @@
 </template>
 
 <script>
-
+import { CInput, CInputRightAddon, CInputLeftAddon, CInputGroup } from '@chakra-ui/vue'
+import { LMap, LTileLayer, LMarker, LPopup, LCircle } from 'vue2-leaflet'
+import ClientOnly from 'vue-client-only'
 import { core } from '../common/core'
+
 const isBrowser = typeof window !== 'undefined'
 let leaflet
 if (isBrowser) {
@@ -39,6 +42,18 @@ if (isBrowser) {
 
 export default {
   name: 'Map',
+  components: {
+    CInput,
+    CInputGroup,
+    CInputRightAddon,
+    CInputLeftAddon,
+    LMap,
+    LTileLayer,
+    LMarker,
+    LPopup,
+    LCircle,
+    ClientOnly
+  },
   props: {
     activity: Array,
     tweets: Array

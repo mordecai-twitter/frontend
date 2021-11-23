@@ -57,11 +57,13 @@
           </c-accordion-header>
           <c-accordion-panel pb="4" align="center">
             <h3 v-if="!sentiment && !isLoading">Please make a search...</h3>
-            <fingerprint-spinner
+            <CSpinner
               v-if="isLoading"
-              :animation-duration="1000"
-              :size="60"
-              :color="'#FFF'"
+              thickness="4px"
+              speed="0.65s"
+              empty-color="gray.200"
+              color="blue.500"
+              size="xl"
             />
             <c-box v-if="isLoaded" w="600px">
               <c-tabs>
@@ -90,8 +92,12 @@
       </c-flex>
       <c-flex direction="column" p="1em">
         <c-flex>
-          <c-flex justify="flex-start"><button v-if="tweets.length > 0" id="olderButton" type="button" name="button" @click="nextPage">Older</button></c-flex>
-          <c-flex justify="flex-end" w="100%"><button v-if="currentPage" id="recentButton" type="button" name="button" @click="prevPage">Recent</button></c-flex>
+          <c-flex justify="flex-start">
+            <button v-if="tweets.length > 0" id="olderButton" type="button" name="button" @click="nextPage">Older</button>
+          </c-flex>
+          <c-flex justify="flex-end" w="100%">
+            <button v-if="currentPage" id="recentButton" type="button" name="button" @click="prevPage">Recent</button>
+          </c-flex>
         </c-flex>
         <c-flex id="tweetsContainer" direction="column">
           <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" />
@@ -102,15 +108,19 @@
 </template>
 
 <script>
-import { CFlex, CFormControl, CSelect, CInput, CButton } from '@chakra-ui/vue'
-import { FingerprintSpinner } from 'epic-spinners'
-import SentimentChart from '../../components/SentimentChart'
+import { CFlex, CFormControl, CSelect, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CInputRightAddon } from '@chakra-ui/vue'
 import Tweet from '../../components/Tweet'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
+import SentimentChart from '../../components/SentimentChart'
 export default {
   components: {
-    FingerprintSpinner,
+    CAccordionItem,
+    CBox,
+    CSpinner,
+    CAccordionPanel,
+    CAccordionIcon,
+    CAccordionHeader,
     SentimentChart,
     CFlex,
     CFormControl,
@@ -141,7 +151,7 @@ export default {
   },
   methods: {
     async displayMapTweets (geocode) {
-      console.log(geocode)
+      // console.log(geocode)
       this.paginator = await core.search(this.query, { geocode })
       this.tweets = this.paginator.getTweets()
     },

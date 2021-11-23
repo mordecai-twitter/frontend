@@ -1,5 +1,6 @@
 /* eslint-disable no-useless-escape */
 import { mount } from '@vue/test-utils'
+import { CThemeProvider } from '@chakra-ui/vue'
 import Tweet from '../../components/Tweet.vue'
 import Data from '../helper/data.js'
 
@@ -21,7 +22,8 @@ describe("Test for the 'tweet' components", () => {
       stubs: {
         NuxtLink: true,
         CBox: true
-      }
+      },
+      parentComponent: CThemeProvider
     })
   })
 
