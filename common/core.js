@@ -90,24 +90,68 @@ class Core {
   }
 
   /**
+  * Query Generator given keyword, user and geo for Twitter API V1
+  * @params {string} keyword - Keyword to search
+  * @params {string} username - Username to search
+  * @params {Object} geocode - Username to search
+  * @params {string} place - Location to search
+  *
+  * @return {Objec} Object containing the query fields
+  */
+  async createQueryV1 (keyword, username = '', geocode = {}, place = '') {
+    const query = {
+      q: keyword
+    }
+    if (username !== '') {
+      query.user_id = await this.api.user(username).data.id
+    }
+    if (place !== '') {
+      const geoInformation = await this.api.geo({ query: place })
+      geocode = { ...geocode, ...geoInformation }
+    }
+    if (geocode.latitude && geocode.longitude && geocode.radius) {
+      query.geocode = geocode.latitude + ',' + geocode.longitude + ',' + geocode.radius + 'km'
+    }
+    return query
+  }
+
+  /**
+  * Query Generator given keyword, user and geo for Twitter API V2
+  * @params {string} keyword - Keyword to search
+  * @params {string} username - Username to search
+  * @params {Object} geocode - Username to search
+  * @params {string} place - Location to search
+  *
+  * @return {Object} Object containing the query fields
+  */
+  createQueryV2 (keyword, username = '', geocode = {}, place = '') {
+    const query = {
+      query: `${keyword}`,
+      'user.fields': 'username,profile_image_url,id'
+    }
+    if (username !== '') {
+      query.query = `${query.query} from:${username}`
+    }
+    if (place !== '') {
+      query.query = `${query.query} place:${place} has:geo`
+    }
+    if (geocode.latitude && geocode.longitude && geocode.radius) {
+      query.query = `${query.query} point_radius:[${geocode.latitude} ${geocode.longitude} ${geocode.radius}km] has:geo`
+    }
+    return query
+  }
+
+  /**
   * Search geolocalized tweets
   * @params {string} query - Text to search
   * @params {string} place - Location
   *
   * @return {Object[]} Geolocalized tweets matching query and place parameters
   */
-  async search (keyword, query = {}, place = '', radius = '10km') {
+  async search (query) {
     try {
-      let geocode = ''
-      const queryObj = { ...query }
-      queryObj.q = keyword
-      if (place) {
-        const coordinates = await this.api.geo({ query: place })
-        geocode = coordinates.latitude + ',' + coordinates.longitude + ',' + radius
-        queryObj.geocode = geocode
-      }
-      const tweets = await this.api.search(queryObj)
-      return new Paginator(tweets.statuses, queryObj, 'search')
+      const tweets = await this.api.search(query)
+      return new Paginator(tweets.statuses, query, 'search')
     } catch (e) {
       return this.handleError(e)
     }
@@ -136,12 +180,9 @@ class Core {
   *
   * @return {Paginator} Paginator object
   */
-  async userTimeline (username, query = {}) {
+  async userTimeline (query) {
     try {
-      let response = await this.api.user(username)
-      const userId = response.data.id
-      query = { ...query, user_id: userId }
-      response = await this.api.userTweets(query)
+      const response = await this.api.userTweets(query)
       return new Paginator(response.statuses, query, 'userTweets')
     } catch (e) {
       return this.handleError(e)

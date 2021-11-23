@@ -9,21 +9,27 @@
         wrap="wrap"
         min-width="20em"
       >
-        <c-form-control w="100%">
-          <c-select id="searchTypesSelect" v-model="searchType" bg="#16202c" placeholder="Search by">
-            <option value="keyword">Keyword</option>
-            <option value="user">User</option>
-          </c-select>
-        </c-form-control>
         <c-box>
+          <h3>Filters:</h3>
           <c-input
             id="textInput"
-            v-model="query"
+            v-model="username"
             pl="1em"
             variant="flushed"
             bg="#16202c"
             type="text"
-            placeholder="Insert here some text..."
+            placeholder="Insert username here..."
+            ml="1em"
+            w="97%"
+          />
+          <c-input
+            id="textInput"
+            v-model="keyword"
+            pl="1em"
+            variant="flushed"
+            bg="#16202c"
+            type="text"
+            placeholder="Insert keyword here..."
             ml="1em"
             w="97%"
           />
@@ -46,8 +52,13 @@
           value="Search"
           @click="search"
         >Search</c-button>
-        <Map :tweets="tweets" @mapClick="displayMapTweets" />
-
+        <Map :tweets="tweets" :circle-radius="radius * 1000" @mapClick="displayMapTweets" />
+        <c-slider v-model.number="radius" :min="1" :max="50" @change="displayMapTweets(undefined)">
+          <c-slider-track />
+          <c-slider-filled-track />
+          <c-slider-thumb />
+        </c-slider>
+        {{ radius }}
         <c-accordion-item>
           <c-accordion-header>
             <c-box flex="1" text-align="left">
@@ -108,7 +119,7 @@
 </template>
 
 <script>
-import { CFlex, CFormControl, CSelect, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CInputRightAddon } from '@chakra-ui/vue'
+import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem } from '@chakra-ui/vue'
 import Tweet from '../../components/Tweet'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
@@ -123,8 +134,6 @@ export default {
     CAccordionHeader,
     SentimentChart,
     CFlex,
-    CFormControl,
-    CSelect,
     CInput,
     CButton,
     Map,
@@ -137,8 +146,11 @@ export default {
       currentPage: Number,
       searchType: 'keyword',
       paginator: Object,
-      query: '',
+      username: '',
+      keyword: '',
       place: '',
+      geocode: {},
+      radius: 10,
       sentiment: undefined,
       isLoaded: false,
       isLoading: false
@@ -148,23 +160,29 @@ export default {
     this.tweets = []
     this.pages = []
     this.currentPage = 0
+    this.geocode.latitude = 11.342616
+    this.geocode.longitude = 44.494888
   },
   methods: {
     async displayMapTweets (geocode) {
-      // console.log(geocode)
-      this.paginator = await core.search(this.query, { geocode })
+      if (geocode) {
+        this.geocode = geocode
+      }
+      console.log('Ciao:', geocode)
+      this.geocode.radius = this.radius
+      const query = await core.createQueryV1(this.keyword, this.username, this.geocode, this.place)
+      this.paginator = await core.search(query)
       this.tweets = this.paginator.getTweets()
     },
     async search () {
       this.isLoaded = false
       this.isLoading = true
-      if (this.searchType === 'keyword') {
-        this.paginator = await core.search(this.query, {}, this.place)
-      } else {
-        this.paginator = await core.userTimeline(this.query)
-      }
+      const query = await core.createQueryV1(this.keyword, this.username, { radius: this.radius }, this.place)
+      const query2 = await core.createQueryV2(this.keyword, this.username, { radius: this.radius }, this.place)
+      console.log(query)
+      this.paginator = await core.search(query)
       this.tweets = this.paginator.getTweets()
-      this.sentiment = (await core.sentiment({ query: `${this.query}` }))
+      this.sentiment = (await core.sentiment(query2))
       if (this.sentiment) {
         this.isLoaded = true
       }

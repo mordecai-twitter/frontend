@@ -20,16 +20,10 @@
         </l-marker>
       </l-map>
     </client-only>
-    <c-input-group id="input-group" w="15em" size="sm" z-index="200">
-      <c-input-left-addon>Radius:</c-input-left-addon>
-      <c-input v-model.number="circleRadius" color="black" type="number" />
-      <c-input-right-addon>Meters</c-input-right-addon>
-    </c-input-group>
   </div>
 </template>
 
 <script>
-import { CInput, CInputRightAddon, CInputLeftAddon, CInputGroup } from '@chakra-ui/vue'
 import { LMap, LTileLayer, LMarker, LPopup, LCircle } from 'vue2-leaflet'
 import ClientOnly from 'vue-client-only'
 import { core } from '../common/core'
@@ -43,10 +37,6 @@ if (isBrowser) {
 export default {
   name: 'Map',
   components: {
-    CInput,
-    CInputGroup,
-    CInputRightAddon,
-    CInputLeftAddon,
     LMap,
     LTileLayer,
     LMarker,
@@ -56,12 +46,12 @@ export default {
   },
   props: {
     activity: Array,
-    tweets: Array
+    tweets: Array,
+    circleRadius: Number
   },
   data () {
     return {
       marker: Object,
-      circleRadius: Number,
       geoTweets: Array
     }
   },
@@ -82,20 +72,17 @@ export default {
   },
   created () {
     this.marker = null
-    this.circleRadius = 1000
     this.geoTweets = []
   },
   methods: {
     async addMarker (event) {
       const coordinates = event.latlng
-      const geocode = coordinates.lat + ',' + coordinates.lng + ',' + this.circleRadius / 1000 + 'km'
-
       const activity = await core.dayTweetCount({ query: `point_radius:[${coordinates.lng} ${coordinates.lat} ${this.circleRadius / 1000}km]` }, new Date())
       this.marker = {
         coordinates: event.latlng,
         activity
       }
-      this.$emit('mapClick', geocode)
+      this.$emit('mapClick', { latitude: coordinates.lat, longitude: coordinates.lng })
     }
   }
 }
