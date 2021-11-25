@@ -5,25 +5,24 @@ class Paginator {
     console.log(err)
   }
 
-  constructor (tweets, query, endpoint) {
-    this.tweets = tweets
-    this.endpoint = endpoint
+  constructor (tweets, query) {
+    if (tweets.meta.result_count > 0) { this.tweets = tweets } else { this.tweets = { data: [], meta: tweets.meta } }
     //  The index is placed to the newest tweet in the current place
     this.index = 0
     //  Array for old sinc_id in order to use it as a range for previous request
     this.ids = []
-    if (tweets.length > 0) {
+    if (this.tweets.data.length > 0) {
       // Most recent tweet
-      this.ids.push(tweets[0].id)
+      this.ids.push(this.getNewest())
       // Oldest tweet
-      this.ids.push(tweets[tweets.length - 1].id)
+      this.ids.push(this.getOldest())
     }
     this.api = new Twitter()
     this.query = query
   }
 
   getTweets () {
-    return this.tweets
+    return this.tweets.data
   }
 
   /**
@@ -32,14 +31,14 @@ class Paginator {
   */
   async next () {
     try {
-      const realQuery = { ...this.query, max_id: this.ids[this.index + 1] }
-      const tweets = await this.api.nextTweets(this.endpoint, realQuery)
-      if (tweets.statuses.length > 0) {
-        this.tweets = tweets.statuses
+      const realQuery = { ...this.query, until_id: this.ids[this.index + 1] }
+      const tweets = await this.api.search(realQuery)
+      if (tweets.meta.result_count > 0) {
+        this.tweets = tweets
         this.index = this.index + 1
         // If a new index is loaded add it to the array
         if (this.index === this.ids.length - 1) {
-          this.ids.push(this.tweets[this.tweets.length - 1].id)
+          this.ids.push(this.getOldest())
         }
       }
     } catch (err) {
@@ -55,10 +54,10 @@ class Paginator {
   async prev () {
     if (this.index > 0) {
       try {
-        const realQuery = { ...this.query, since_id: this.ids[this.index], max_id: this.ids[this.index - 1] }
-        const tweets = await this.api.nextTweets(this.endpoint, realQuery)
-        if (tweets.statuses.length > 0) {
-          this.tweets = tweets.statuses
+        const realQuery = { ...this.query, since_id: this.ids[this.index], until_id: this.ids[this.index - 1] }
+        const tweets = await this.api.search(realQuery)
+        if (tweets.meta.result_count > 0) {
+          this.tweets = tweets
           this.index = this.index - 1
         }
       } catch (err) {
@@ -69,11 +68,19 @@ class Paginator {
   }
 
   /**
-  * @summary Get the oldest tweet
-  * @returns Return the oldest tweet
+  * @summary Get the oldest tweet id
+  * @returns Return the oldest tweet id
   */
   getOldest () {
-    return this.tweets[this.tweets.length - 1]
+    return this.tweets.meta.oldest_id
+  }
+
+  /**
+  * @summary Get the newest tweet id
+  * @returns Return the oldest tweet id
+  */
+  getNewest () {
+    return this.tweets.meta.newest_id
   }
 }
 
@@ -136,7 +143,7 @@ class Core {
       query.query = `${query.query} place:${place} has:geo`
     }
     if (geocode.latitude && geocode.longitude && geocode.radius) {
-      query.query = `${query.query} point_radius:[${geocode.latitude} ${geocode.longitude} ${geocode.radius}km] has:geo`
+      query.query = `${query.query}   point_radius:[${geocode.latitude} ${geocode.longitude} ${geocode.radius}km]`
     }
     return query
   }
@@ -150,10 +157,8 @@ class Core {
   */
   async search (query) {
     try {
-      if (query.username !== '') { return this.userTimeline(query) } else {
-        const tweets = await this.api.search(query)
-        return new Paginator(tweets.statuses, query, 'search')
-      }
+      const tweets = await this.api.search(query)
+      return new Paginator(tweets, query)
     } catch (e) {
       return this.handleError(e)
     }
@@ -220,8 +225,6 @@ class Core {
       if (analysis.comparative) {
         const total = analysis.positiveCount + analysis.negativeCount + analysis.neutralCount
         analysis.chartdata = [(analysis.positiveCount * 100 / total).toFixed(2), (analysis.negativeCount * 100 / total).toFixed(2), (analysis.neutralCount * 100 / total).toFixed(2)]
-        analysis.best.tweet = await this.singleTweet(analysis.best.tweet.id)
-        analysis.worst.tweet = await this.singleTweet(analysis.worst.tweet.id)
         return analysis
       }
       return undefined

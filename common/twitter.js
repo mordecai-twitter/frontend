@@ -19,7 +19,8 @@ class twitter {
     this.tweetUrl = 'statuses/show'
     this.geoIdUrl = 'geo/id'
     // V2 urls
-    this.countUrl = this.v2Url + 'tweets/counts/recent'
+    this.countV2Url = this.v2Url + 'tweets/counts/recent'
+    this.searchV2Url = this.v2Url + 'tweets/search/all'
     // Custom urls
     this.sentimentUrl = 'sentiment'
   }
@@ -71,7 +72,7 @@ class twitter {
   * @returns Tweets of the given user
   */
   async search (query) {
-    return await this.request(this.searchUrl, query)
+    return await this.request(this.searchV2Url, query)
   }
 
   /**

@@ -34,7 +34,7 @@
             w="97%"
           />
         </c-box>
-        <c-checkbox v-model="geoEnable" size="md" variant-color="green" default-is-checked>Enable geolocalization</c-checkbox>
+        <c-checkbox v-model="geoEnable" size="md" variant-color="green">Enable geolocalization</c-checkbox>
         <c-button
           id="searchButton"
           variant-color="black"
@@ -81,10 +81,10 @@
                     </c-flex>
                   </c-tab-panel>
                   <c-tab-panel align="left">
-                    <Tweet :key="sentiment.best.tweet.id_str" :tweet="sentiment.best.tweet" />
+                    <Tweet :id="sentiment.best.tweet.id" :key="sentiment.best.tweet.id" />
                   </c-tab-panel>
                   <c-tab-panel align="left">
-                    <Tweet :key="sentiment.worst.tweet.id_str" :tweet="sentiment.worst.tweet" />
+                    <Tweet :id="sentiment.worst.tweet.id" :key="sentiment.worst.tweet.id" />
                   </c-tab-panel>
                 </c-tab-panels>
               </c-tabs>
@@ -101,8 +101,9 @@
             <button v-if="currentPage" id="recentButton" type="button" name="button" @click="prevPage">Recent</button>
           </c-flex>
         </c-flex>
-        <c-flex id="tweetsContainer" direction="column">
-          <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" />
+        <c-flex id="tweetsContainer" direction="column" align="center">
+          <!-- <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" /> -->
+          <Tweet v-for="tweet in tweets" :id="tweet.id" :key="tweet.id"><div class="spinner" /></Tweet>
         </c-flex>
       </c-flex>
     </c-flex>
@@ -111,7 +112,7 @@
 
 <script>
 import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
-import Tweet from '../../components/Tweet'
+import { Tweet } from 'vue-tweet-embed'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
@@ -145,7 +146,7 @@ export default {
         longitude: Number,
         radius: 1
       },
-      geoEnable: true,
+      geoEnable: false,
       sentiment: undefined,
       isLoaded: false,
       isLoading: false
@@ -173,15 +174,14 @@ export default {
       }
       this.isLoaded = false
       this.isLoading = true
-      const query = await core.createQueryV1({ ...arg })
+      // const query = await core.createQueryV1({ ...arg })
       const queryV2 = await core.createQueryV2({ ...arg })
       console.log(queryV2)
-      this.paginator = await core.search(query)
+      this.paginator = await core.search(queryV2)
       this.currentPage = 0
       this.tweets = this.paginator.getTweets()
       this.sentiment = (await core.sentiment(queryV2))
       if (this.sentiment) {
-        console.log(this.sentiment)
         this.isLoaded = true
       }
       this.isLoading = false

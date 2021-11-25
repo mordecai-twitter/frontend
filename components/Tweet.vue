@@ -1,5 +1,5 @@
 <template>
-  <nuxt-link :to="'tweets/' + tweet.id_str">
+  <div>
     <c-box
       id="tweetBox"
       class="tweet"
@@ -18,7 +18,7 @@
       <p><span class="content" v-html="highlightedTweet" /></p>
       <p class="date">{{ tweet.created_at }}</p>
     </c-box>
-  </nuxt-link>
+  </div>
 </template>
 
 <script>
