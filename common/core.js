@@ -87,7 +87,58 @@ class Core {
     this.api = new Twitter()
     this.since_id = ''
     this.max_id = ''
-    this.date = new DateUtils()
+  }
+
+  /**
+  * Query Generator given keyword, user and geo for Twitter API V1
+  * @params {string} keyword - Keyword to search
+  * @params {string} username - Username to search
+  * @params {Object} geocode - Username to search
+  * @params {string} place - Location to search
+  *
+  * @return {Objec} Object containing the query fields
+  */
+  async createQueryV1 ({ keyword, username = '', geocode = {}, place = '' }) {
+    const query = {
+      q: keyword
+    }
+    if (username !== '') {
+      query.user_id = (await this.api.user(username)).data.id
+    }
+    if (place !== '') {
+      const geoInformation = await this.api.geo({ query: place })
+      geocode = { ...geocode, ...geoInformation }
+    }
+    if (geocode.latitude && geocode.longitude && geocode.radius) {
+      query.geocode = geocode.latitude + ',' + geocode.longitude + ',' + geocode.radius + 'km'
+    }
+    return query
+  }
+
+  /**
+  * Query Generator given keyword, user and geo for Twitter API V2
+  * @params {string} keyword - Keyword to search
+  * @params {string} username - Username to search
+  * @params {Object} geocode - Username to search
+  * @params {string} place - Location to search
+  *
+  * @return {Object} Object containing the query fields
+  */
+  createQueryV2 ({ keyword, username = '', geocode = {}, place = '' }) {
+    const query = {
+      query: `${keyword}`
+    }
+    if (username !== '') {
+      console.log('Inside username')
+      query.query = `${query.query} from:${username}`
+    }
+    if (place !== '') {
+      query.query = `${query.query} place:${place} has:geo`
+    }
+    if (geocode.latitude && geocode.longitude && geocode.radius) {
+      query.query = `${query.query} point_radius:[${geocode.latitude} ${geocode.longitude} ${geocode.radius}km] has:geo`
+    }
+    return query
   }
 
   /**
@@ -97,18 +148,12 @@ class Core {
   *
   * @return {Object[]} Geolocalized tweets matching query and place parameters
   */
-  async search (keyword, query = {}, place = '', radius = '10km') {
+  async search (query) {
     try {
-      let geocode = ''
-      const queryObj = { ...query }
-      queryObj.q = keyword
-      if (place) {
-        const coordinates = await this.api.geo({ query: place })
-        geocode = coordinates.latitude + ',' + coordinates.longitude + ',' + radius
-        queryObj.geocode = geocode
+      if (query.username !== '') { return this.userTimeline(query) } else {
+        const tweets = await this.api.search(query)
+        return new Paginator(tweets.statuses, query, 'search')
       }
-      const tweets = await this.api.search(queryObj)
-      return new Paginator(tweets.statuses, queryObj, 'search')
     } catch (e) {
       return this.handleError(e)
     }
@@ -137,64 +182,13 @@ class Core {
   *
   * @return {Paginator} Paginator object
   */
-  async userTimeline (username, query = {}) {
+  async userTimeline (query) {
     try {
-      let response = await this.api.user(username)
-      const userId = response.data.id
-      query = { ...query, user_id: userId }
-      response = await this.api.userTweets(query)
+      const response = await this.api.userTweets(query)
       return new Paginator(response.statuses, query, 'userTweets')
     } catch (e) {
       return this.handleError(e)
     }
-  }
-
-  /**
-  * @summary Get the tweets of the indicated date in the previous week
-  * @params {String} keyword - Text query
-  * @params {Objetc} query - Query object
-  * @param {Number} day - Date
-  *
-  * @return {Object[]} geolocalized tweets matching query and place parameters
-  */
-  async dayTweet (keyword, query, date) {
-    const endDate = new Date(date)
-    endDate.setUTCDate(endDate.getUTCDate() - 7)
-    endDate.setUTCHours(0, 0, 1)
-
-    const queryDate = new Date(endDate)
-    queryDate.setUTCDate(queryDate.getUTCDate() + 1)
-
-    const dataSet = []
-    query = {
-      q: keyword,
-      result: 'recent',
-      count: 100,
-      until: `${queryDate.getUTCFullYear()}-${queryDate.getUTCMonth() + 1}-${queryDate.getUTCDate()}`,
-      ...query
-    }
-    console.log(query)
-    try {
-      const page = await this.search(keyword, query)
-      if (this.date.compare(page.getOldest().created_at, endDate) === 1) {
-        dataSet.push(...page.getTweets())
-      }
-      // Iterate until you find a tweet before the required day
-      while (this.date.compare(page.getOldest().created_at, endDate) === 1) {
-        await page.next()
-        if (this.date.compare(page.getOldest().created_at, endDate) === 1) {
-          dataSet.push(...page.getTweets())
-        } else {
-          console.log({ latsPage: page.getTweets() })
-          dataSet.push(...page.getTweets().filter(tweet =>
-            this.date.compare(tweet.created_at, endDate) === 1
-          ))
-        }
-      }
-    } catch (err) {
-      console.log(err)
-    }
-    return dataSet
   }
 
   async dayTweetCount (query, date) {
@@ -220,37 +214,21 @@ class Core {
     }
   }
 
-  /**
-  * @summary Get the tweets in the past days
-  * @params {String} keyword - Text query
-  * @params {Objetc} query - Query object
-  * @param {Number} days - Number of days back in the past
-  *
-  * @return {Object[]} geolocalized tweets matching query and place parameters
-  */
-  async recentTweets (keyword, query, days) {
-    const endDate = Date.parse(this.addDays(new Date(), -days))
-    const dataSet = []
-    query = {
-      result: 'recent',
-      count: 100,
-      ...query
-    }
+  async sentiment (query) {
     try {
-      const page = await this.search(keyword, query)
-      if (Date.parse(page.getOldest().created_at) > endDate) {
-        dataSet.push(...page.getTweets())
+      const analysis = await this.api.sentiment(query)
+      if (analysis.comparative) {
+        const total = analysis.positiveCount + analysis.negativeCount + analysis.neutralCount
+        analysis.chartdata = [(analysis.positiveCount * 100 / total).toFixed(2), (analysis.negativeCount * 100 / total).toFixed(2), (analysis.neutralCount * 100 / total).toFixed(2)]
+        analysis.best.tweet = await this.singleTweet(analysis.best.tweet.id)
+        analysis.worst.tweet = await this.singleTweet(analysis.worst.tweet.id)
+        return analysis
       }
-      while (Date.parse(page.getOldest().created_at) > endDate) {
-        console.log(Date.parse(page.getOldest().created_at), endDate)
-        await page.next()
-        dataSet.push(...page.getTweets())
-      }
+      return undefined
     } catch (err) {
       console.log(err)
+      return undefined
     }
-    console.log(dataSet)
-    return dataSet
   }
 
   async getGeo (placeId) {
@@ -259,28 +237,6 @@ class Core {
       return res.centroid
     } catch (err) {
       return this.handleError(err)
-    }
-  }
-}
-
-class DateUtils {
-  addDays (date, days) {
-    const result = new Date(date)
-    result.setDate(result.getDate() + days)
-    return result
-  }
-
-  parseDate (date) {
-    return new Date(date).toISOString().split('T')[0]
-  }
-
-  compare (date1, date2) {
-    date1 = Date.parse(date1)
-    date2 = Date.parse(date2)
-    if (date1 > date2) { return 1 } else if (date1 < date2) {
-      return -1
-    } else {
-      return 0
     }
   }
 }

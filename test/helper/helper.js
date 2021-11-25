@@ -1,6 +1,6 @@
 import { CThemeProvider } from '@chakra-ui/vue'
 import { mount } from '@vue/test-utils'
-import { mockOkRequest } from '../mocks/axios'
+import mockedAxios from '../mocks/axios'
 
 function random (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -36,7 +36,9 @@ function getMountedWrappedPage (Page) {
 
 function simulateSearchQuery (mock, query, tweet, selectOption) {
   // Creo una mock requestResponse che verrà restituita quando si fa una richiesta get
-  mockOkRequest(tweet)
+  // mockedAxios.mockOkRequest(tweet)
+
+  mockedAxios.mockMultipleRequest({ search: tweet, user: { id: 11348282 }, userTimeline: tweet.statuses })
 
   // Seleziono la query per keyword
   selectOption.setSelected()

@@ -2,9 +2,10 @@ import flushPromises from 'flush-promises'
 import Page from '../../pages/Tweets/index.vue'
 import { getMountedWrappedPage, randomlyInsertString, simulateSearchQuery } from '../helper/helper'
 import Data from '../helper/data.js'
-import { mockOkRequest } from '../mocks/axios'
+import mockedAxios from '../mocks/axios'
 import Assert from '../helper/assertion'
 import Tweet from '../../components/Tweet.vue'
+import { core } from '../../common/core'
 
 const mock = {}
 jest.mock('axios', () => {
@@ -26,10 +27,10 @@ describe('Test for the page showing all tweets', () => {
     mock.goButton = mock.wrapper.find('#searchButton')
     mock.tweetsContainer = mock.wrapper.find('#tweetsContainer')
 
-    mock.olderButton = mock.wrapper.find('#olderButton')
-    mock.recentButton = mock.wrapper.find('#recentButton')
-
     mock.tweets = Data.getTweetsData()
+
+    // Mocca la funzione sentiment di core, perché non vogliamo testarla adesso
+    core.sentiment = jest.fn()
   })
 
   afterEach(() => {
@@ -52,11 +53,6 @@ describe('Test for the page showing all tweets', () => {
 
     test('The tweets container should exists', () => {
       Assert.componentExistance(mock.tweetsContainer)
-    })
-
-    test('The older and recent button should exists', () => {
-      Assert.componentExistance(mock.olderButton)
-      Assert.componentExistance(mock.recentButton)
     })
   })
 
@@ -107,19 +103,27 @@ describe('Test for the page showing all tweets', () => {
   })
 
   describe('Testing the page button', () => {
-    test('It should change the current displayed tweet when user clicks on "older" and display a new set of tweets', async () => {
-      const firstPageTweet = Data.getTweetsBetween(0, 3)
+    let firstPageTweet = {}
+    let olderButton = {}
+
+    beforeEach(async () => {
+      firstPageTweet = Data.getTweetsBetween(0, 3)
       simulateSearchQuery(mock, '', firstPageTweet, mock.searchSelectOption.keyword)
       await flushPromises()
 
-      const secondPageTweet = Data.getTweetsBetween(4, 6)
-      mockOkRequest(secondPageTweet)
+      olderButton = mock.wrapper.find('#olderButton')
+      Assert.componentExistance(olderButton)
+    })
+
+    test('It should change the current displayed tweet when user clicks on "older" and display a new set of tweets', async () => {
+      const secondPageTweet = Data.getTweetsBetween(4, 5)
+      mockedAxios.mockOkRequest(secondPageTweet)
 
       let childrens = mock.tweetsContainer.findAllComponents(Tweet)
       Assert.componentsPropToBeArray(childrens, firstPageTweet.statuses, prop => prop.tweet.id_str, tweet => tweet.id_str)
       Assert.componentsPropToNotBeArray(childrens, secondPageTweet.statuses, prop => prop.tweet.id_str, tweet => tweet.id_str)
 
-      mock.olderButton.trigger('click')
+      olderButton.trigger('click')
       await flushPromises()
 
       childrens = mock.tweetsContainer.findAllComponents(Tweet)
@@ -128,19 +132,18 @@ describe('Test for the page showing all tweets', () => {
     })
 
     test('It should display the same tweets if user clicks on "older" then "recent" ', async () => {
-      const firstPageTweet = Data.getTweetsBetween(0, 3)
-      simulateSearchQuery(mock, '', firstPageTweet, mock.searchSelectOption.keyword)
+      const secondPageTweet = Data.getTweetsBetween(4, 5)
+      mockedAxios.mockMultipleRequest({ search: secondPageTweet })
+
+      olderButton.trigger('click')
       await flushPromises()
 
-      const secondPageTweet = Data.getTweetsBetween(4, 6)
-      mockOkRequest(secondPageTweet)
-
-      mock.olderButton.trigger('click')
-      await flushPromises()
+      const recentButton = mock.wrapper.find('#recentButton')
+      Assert.componentExistance(recentButton)
 
       // NOTE: questa terza richiesta mocckata può essere inutile, dipende tutto da se si fa cache dei tweet o no
-      mockOkRequest(firstPageTweet)
-      mock.recentButton.trigger('click')
+      mockedAxios.mockMultipleRequest({ search: firstPageTweet })
+      recentButton.trigger('click')
       await flushPromises()
 
       const childrens = mock.tweetsContainer.findAllComponents(Tweet)

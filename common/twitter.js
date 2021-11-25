@@ -20,6 +20,8 @@ class twitter {
     this.geoIdUrl = 'geo/id'
     // V2 urls
     this.countUrl = this.v2Url + 'tweets/counts/recent'
+    // Custom urls
+    this.sentimentUrl = 'sentiment'
   }
 
   /**
@@ -69,7 +71,6 @@ class twitter {
   * @returns Tweets of the given user
   */
   async search (query) {
-    console.log('In search')
     return await this.request(this.searchUrl, query)
   }
 
@@ -80,7 +81,6 @@ class twitter {
   * @returns Tweets of the given user
   */
   async userTweets (query) {
-    console.log('In user')
     return { statuses: await this.request(this.userTweetsUrl, query) }
   }
 
@@ -120,6 +120,15 @@ class twitter {
   */
   async geoId (id) {
     return await this.request(this.geoIdUrl + `/${id}`)
+  }
+
+  /**
+  * @summary Returns the sentiment about a query
+  * @params {Object} query - Tweet place id
+  * @returns - Sentiment analysis
+  */
+  async sentiment (query) {
+    return await this.request(this.sentimentUrl, query)
   }
 }
 

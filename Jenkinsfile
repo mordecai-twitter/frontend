@@ -10,11 +10,11 @@ node {
     }
   }
   stage('Test') {
-    sh "ls -al"
     sh "npm install --save"
+    sh "yarn install --save"
     try {
       sh "npm test"
-    } catch (err) {
+    }   catch (err) {
         echo "Failed: ${err}"
     }
   }

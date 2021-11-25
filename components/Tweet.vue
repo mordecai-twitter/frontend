@@ -11,23 +11,23 @@
       bg="#16202c"
       color="white"
     >
-    <c-heading as="h3" size="sm">{{tweet.user.name}}
-        <span class="tag"> @{{tweet.user.screen_name}}</span>
+      <c-heading as="h3" size="sm">{{ tweet.user.name }}
+        <span class="tag"> @{{ tweet.user.screen_name }}</span>
         <c-tag v-if="tweet.geo != null" size="sm" ml="1em">geo'd by tweet</c-tag>
-    </c-heading>
+      </c-heading>
       <p><span class="content" v-html="highlightedTweet" /></p>
-      <p class="date">{{this.tweet.created_at}}</p>
+      <p class="date">{{ tweet.created_at }}</p>
     </c-box>
   </nuxt-link>
 </template>
 
 <script>
-import { CBox } from '@chakra-ui/vue'
+import { CBox, CHeading } from '@chakra-ui/vue'
 
 export default {
   name: 'Tweet',
   components: {
-    CBox
+    CBox, CHeading
   },
   props: {
     tweet: {
@@ -42,6 +42,9 @@ export default {
       tw = (tw).replace(hashReg, "<span class='blue'>$&</span>")
       return tw
     }
+  },
+  created () {
+    // console.log(this.tweet)
   }
 }
 </script>
