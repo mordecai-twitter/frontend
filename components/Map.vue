@@ -1,17 +1,13 @@
 <template lang="html">
   <div id="map-wrap" :style="{ height: '60vh', width: '100%' }">
     <client-only>
-      <l-map id="map" :zoom="13" :center="[44.494888,11.342616]" @click="addMarker">
+      <l-map id="map" :zoom="13" :center="[marker.coordinates.lat, marker.coordinates.lng]" @click="addMarker">
         <l-tile-layer url="http://{s}.tile.osm.org/{z}/{x}/{y}.png" />
         <l-circle
           v-show="marker"
           :radius="circleRadius"
-          :lat-lng="marker ? marker.coordinates : undefined"
-        >
-          <l-tooltip v-if="marker" ref="activityPopup" class="tooltip" :lat-lng="marker ? marker.coordinates : undefined" :options="{permanent: true, direction: 'top', opacity: 1}">
-            <ActivityChart :activity="marker.activity" />
-          </l-tooltip>
-        </l-circle>
+          :lat-lng="marker ? marker.coordinates : ''"
+        />
         <l-marker v-for="geoTweet in geoTweets" :key="geoTweet.id" :icon="geoTweet.icon" :lat-lng="geoTweet.geo">
           <l-popup>
             <h2>Tweet by: {{ geoTweet.user.name }}</h2>
@@ -45,7 +41,6 @@ export default {
     ClientOnly
   },
   props: {
-    activity: Array,
     tweets: Array,
     circleRadius: Number
   },
@@ -71,16 +66,21 @@ export default {
     }
   },
   created () {
-    this.marker = null
+    this.marker = {
+      coordinates: {
+        lat: 44.494888,
+        lng: 11.342616
+      }
+    }
     this.geoTweets = []
   },
   methods: {
-    async addMarker (event) {
+    addMarker (event) {
       const coordinates = event.latlng
-      const activity = await core.dayTweetCount({ query: `point_radius:[${coordinates.lng} ${coordinates.lat} ${this.circleRadius / 1000}km]` }, new Date())
+      // const activity = await core.dayTweetCount({ query: `point_radius:[${coordinates.lng} ${coordinates.lat} ${this.circleRadius / 1000}km]` }, new Date())
+      console.log(event.latlng)
       this.marker = {
-        coordinates: event.latlng,
-        activity
+        coordinates
       }
       this.$emit('mapClick', { latitude: coordinates.lat, longitude: coordinates.lng })
     }

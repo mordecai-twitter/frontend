@@ -98,12 +98,12 @@ class Core {
   *
   * @return {Objec} Object containing the query fields
   */
-  async createQueryV1 (keyword, username = '', geocode = {}, place = '') {
+  async createQueryV1 ({ keyword, username = '', geocode = {}, place = '' }) {
     const query = {
       q: keyword
     }
     if (username !== '') {
-      query.user_id = await this.api.user(username).data.id
+      query.user_id = (await this.api.user(username)).data.id
     }
     if (place !== '') {
       const geoInformation = await this.api.geo({ query: place })
@@ -124,12 +124,12 @@ class Core {
   *
   * @return {Object} Object containing the query fields
   */
-  createQueryV2 (keyword, username = '', geocode = {}, place = '') {
+  createQueryV2 ({ keyword, username = '', geocode = {}, place = '' }) {
     const query = {
-      query: `${keyword}`,
-      'user.fields': 'username,profile_image_url,id'
+      query: `${keyword}`
     }
     if (username !== '') {
+      console.log('Inside username')
       query.query = `${query.query} from:${username}`
     }
     if (place !== '') {
@@ -150,8 +150,10 @@ class Core {
   */
   async search (query) {
     try {
-      const tweets = await this.api.search(query)
-      return new Paginator(tweets.statuses, query, 'search')
+      if (query.username !== '') { return this.userTimeline(query) } else {
+        const tweets = await this.api.search(query)
+        return new Paginator(tweets.statuses, query, 'search')
+      }
     } catch (e) {
       return this.handleError(e)
     }
@@ -215,11 +217,14 @@ class Core {
   async sentiment (query) {
     try {
       const analysis = await this.api.sentiment(query)
-      const total = analysis.positiveCount + analysis.negativeCount + analysis.neutralCount
-      analysis.chartdata = [(analysis.positiveCount * 100 / total).toFixed(2), (analysis.negativeCount * 100 / total).toFixed(2), (analysis.neutralCount * 100 / total).toFixed(2)]
-      analysis.best.tweet = await this.singleTweet(analysis.best.tweet.id)
-      analysis.worst.tweet = await this.singleTweet(analysis.worst.tweet.id)
-      return analysis
+      if (analysis.comparative) {
+        const total = analysis.positiveCount + analysis.negativeCount + analysis.neutralCount
+        analysis.chartdata = [(analysis.positiveCount * 100 / total).toFixed(2), (analysis.negativeCount * 100 / total).toFixed(2), (analysis.neutralCount * 100 / total).toFixed(2)]
+        analysis.best.tweet = await this.singleTweet(analysis.best.tweet.id)
+        analysis.worst.tweet = await this.singleTweet(analysis.worst.tweet.id)
+        return analysis
+      }
+      return undefined
     } catch (err) {
       console.log(err)
       return undefined

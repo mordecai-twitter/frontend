@@ -33,17 +33,8 @@
             ml="1em"
             w="97%"
           />
-          <c-input
-            v-model="place"
-            pl="1em"
-            variant="flushed"
-            bg="#16202c"
-            type="text"
-            placeholder="Insert Location Here..."
-            ml="1em"
-            w="97%"
-          />
         </c-box>
+        <c-checkbox v-model="geoEnable" size="md" variant-color="green" default-is-checked>Enable geolocalization</c-checkbox>
         <c-button
           id="searchButton"
           variant-color="black"
@@ -52,13 +43,13 @@
           value="Search"
           @click="search"
         >Search</c-button>
-        <Map :tweets="tweets" :circle-radius="radius * 1000" @mapClick="displayMapTweets" />
-        <c-slider v-model.number="radius" :min="1" :max="50" @change="displayMapTweets(undefined)">
+        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" />
+        <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
           <c-slider-filled-track />
           <c-slider-thumb />
         </c-slider>
-        {{ radius }}
+        {{ geocode.radius }} Km
         <c-accordion-item>
           <c-accordion-header>
             <c-box flex="1" text-align="left">
@@ -119,7 +110,7 @@
 </template>
 
 <script>
-import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem } from '@chakra-ui/vue'
+import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
 import Tweet from '../../components/Tweet'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
@@ -127,6 +118,7 @@ import SentimentChart from '../../components/SentimentChart'
 export default {
   components: {
     CAccordionItem,
+    CCheckbox,
     CBox,
     CSpinner,
     CAccordionPanel,
@@ -148,9 +140,12 @@ export default {
       paginator: Object,
       username: '',
       keyword: '',
-      place: '',
-      geocode: {},
-      radius: 10,
+      geocode: {
+        latitude: Number,
+        longitude: Number,
+        radius: 1
+      },
+      geoEnable: true,
       sentiment: undefined,
       isLoaded: false,
       isLoading: false
@@ -160,30 +155,33 @@ export default {
     this.tweets = []
     this.pages = []
     this.currentPage = 0
-    this.geocode.latitude = 11.342616
-    this.geocode.longitude = 44.494888
+    this.geocode.longitude = 11.342616
+    this.geocode.latitude = 44.494888
   },
   methods: {
-    async displayMapTweets (geocode) {
+    displayMapTweets (geocode) {
       if (geocode) {
-        this.geocode = geocode
+        this.geocode.latitude = geocode.latitude
+        this.geocode.longitude = geocode.longitude
       }
-      console.log('Ciao:', geocode)
-      this.geocode.radius = this.radius
-      const query = await core.createQueryV1(this.keyword, this.username, this.geocode, this.place)
-      this.paginator = await core.search(query)
-      this.tweets = this.paginator.getTweets()
     },
     async search () {
+      const arg = {
+        keyword: this.keyword,
+        username: this.username,
+        geocode: this.geoEnable ? this.geocode : {}
+      }
       this.isLoaded = false
       this.isLoading = true
-      const query = await core.createQueryV1(this.keyword, this.username, { radius: this.radius }, this.place)
-      const query2 = await core.createQueryV2(this.keyword, this.username, { radius: this.radius }, this.place)
-      console.log(query)
+      const query = await core.createQueryV1({ ...arg })
+      const queryV2 = await core.createQueryV2({ ...arg })
+      console.log(queryV2)
       this.paginator = await core.search(query)
+      this.currentPage = 0
       this.tweets = this.paginator.getTweets()
-      this.sentiment = (await core.sentiment(query2))
+      this.sentiment = (await core.sentiment(queryV2))
       if (this.sentiment) {
+        console.log(this.sentiment)
         this.isLoaded = true
       }
       this.isLoading = false
