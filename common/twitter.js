@@ -21,6 +21,7 @@ class twitter {
     // V2 urls
     this.countV2Url = this.v2Url + 'tweets/counts/recent'
     this.searchV2Url = this.v2Url + 'tweets/search/all'
+    this.userByIdUrl = this.v2Url + 'user/'
     // Custom urls
     this.sentimentUrl = 'sentiment'
   }
@@ -63,6 +64,17 @@ class twitter {
   */
   async user (username, query) {
     return await this.request(this.userUrl + `/${username}`, query)
+  }
+
+  /**
+  * @summary Get user info
+  * @params {String} username - User id
+  * @params {Object} query - Tweet query object
+  *
+  * @returns User information
+  */
+  async userById (id, query) {
+    return await this.request(this.userByIdUrl + `${id}`, query)
   }
 
   /**

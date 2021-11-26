@@ -42,8 +42,9 @@
           name=""
           value="Search"
           @click="search"
+          :isDisabled="!(this.keyword || this.username || this.geoEnable)"
         >Search</c-button>
-        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" />
+        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" :geoEnable="geoEnable"/>
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
           <c-slider-filled-track />
@@ -101,9 +102,11 @@
             <button v-if="currentPage" id="recentButton" type="button" name="button" @click="prevPage">Recent</button>
           </c-flex>
         </c-flex>
-        <c-flex id="tweetsContainer" direction="column" align="center">
+        <c-flex id="tweetsContainer" direction="column" flexWrap>
           <!-- <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" /> -->
-          <Tweet v-for="tweet in tweets" :id="tweet.id" :key="tweet.id"><div class="spinner" /></Tweet>
+          <c-box v-for="tweet in tweets" :key="tweet.id" w="40%" p="4">
+            <Tweet :id="tweet.id" ><div class="spinner" /></Tweet>
+          </c-box>
         </c-flex>
       </c-flex>
     </c-flex>
@@ -149,7 +152,8 @@ export default {
       geoEnable: false,
       sentiment: undefined,
       isLoaded: false,
-      isLoading: false
+      isLoading: false,
+      searchDisabled: Boolean
     }
   },
   created () {
@@ -157,6 +161,7 @@ export default {
     this.pages = []
     this.currentPage = 0
     this.geocode.longitude = 11.342616
+    this.searchDisabled = true
     this.geocode.latitude = 44.494888
   },
   methods: {

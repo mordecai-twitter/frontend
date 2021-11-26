@@ -133,18 +133,23 @@ class Core {
   */
   createQueryV2 ({ keyword, username = '', geocode = {}, place = '' }) {
     const query = {
-      query: `${keyword}`
+      query: `${keyword}`,
+      'tweet.fields': 'author_id,geo',
+      'user.fields': 'username'
     }
     if (username !== '') {
       console.log('Inside username')
       query.query = `${query.query} from:${username}`
     }
     if (place !== '') {
+      console.log('Inside place')
       query.query = `${query.query} place:${place} has:geo`
     }
     if (geocode.latitude && geocode.longitude && geocode.radius) {
-      query.query = `${query.query}   point_radius:[${geocode.latitude} ${geocode.longitude} ${geocode.radius}km]`
+      console.log('Inside geocode')
+      query.query = `${query.query} point_radius:[${geocode.longitude} ${geocode.latitude} ${geocode.radius}km] has:geo`
     }
+    console.log(query)
     return query
   }
 
@@ -231,6 +236,17 @@ class Core {
     } catch (err) {
       console.log(err)
       return undefined
+    }
+  }
+
+  async getUserInfo (id) {
+    const query = {
+      'user.fields': 'profile_image_url'
+    }
+    try {
+      return await this.api.userById(id, query)
+    } catch (e) {
+      this.handleError(e)
     }
   }
 
