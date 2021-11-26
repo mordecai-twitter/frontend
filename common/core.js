@@ -6,12 +6,13 @@ class Paginator {
   }
 
   constructor (tweets, query) {
-    if (tweets.meta.result_count > 0) { this.tweets = tweets } else { this.tweets = { data: [], meta: tweets.meta } }
+    if (tweets && tweets.meta.result_count > 0) { this.tweets = tweets } else { this.tweets = { data: [], meta: tweets?.meta } }
     //  The index is placed to the newest tweet in the current place
     this.index = 0
     //  Array for old sinc_id in order to use it as a range for previous request
     this.ids = []
     if (this.tweets.data.length > 0) {
+      this.firstTweet = this.tweets.data[0]
       // Most recent tweet
       this.ids.push(this.getNewest())
       // Oldest tweet
@@ -54,11 +55,15 @@ class Paginator {
   async prev () {
     if (this.index > 0) {
       try {
-        const realQuery = { ...this.query, since_id: this.ids[this.index], until_id: this.ids[this.index - 1] }
+        const realQuery = { ...this.query, until_id: this.ids[this.index - 1] }
         const tweets = await this.api.search(realQuery)
         if (tweets.meta.result_count > 0) {
           this.tweets = tweets
           this.index = this.index - 1
+          if (this.index === 0) {
+            this.tweets.data = this.tweets.data.slice(0, this.tweets.data.length - 1)
+            this.tweets.data.unshift(this.firstTweet)
+          }
         }
       } catch (err) {
         this.handleError(err)
@@ -227,7 +232,7 @@ class Core {
   async sentiment (query) {
     try {
       const analysis = await this.api.sentiment(query)
-      if (analysis.comparative) {
+      if (analysis?.comparative) {
         const total = analysis.positiveCount + analysis.negativeCount + analysis.neutralCount
         analysis.chartdata = [(analysis.positiveCount * 100 / total).toFixed(2), (analysis.negativeCount * 100 / total).toFixed(2), (analysis.neutralCount * 100 / total).toFixed(2)]
         return analysis
