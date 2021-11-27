@@ -100,7 +100,6 @@ export default {
     },
     addMarker (event) {
       const coordinates = event.latlng
-      // const activity = await core.dayTweetCount({ query: `point_radius:[${coordinates.lng} ${coordinates.lat} ${this.circleRadius / 1000}km]` }, new Date())
       console.log(event.latlng)
       this.marker = {
         coordinates

@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+/** Interface with Mordecai back-end */
 class twitter {
   handleError (err) {
     console.log(err)
@@ -28,8 +29,8 @@ class twitter {
 
   /**
   * @summary Generic request function
-  * @params {Object} url - Tweet back-end url
-  * @params {Object} query - Tweet query object
+  * @param {string} url - Tweet back-end url
+  * @param {object} query - Tweet query object
   *
   * @returns Tweet response body
   */
@@ -47,7 +48,7 @@ class twitter {
 
   /**
   * @summary Get tweets place informations
-  * @params {Object} query - Tweet query object, should include lat-lng or a query text
+  * @param {object} query - Tweet query object, should include lat-lng or a query text
   *
   * @returns Array of possible locations
   */
@@ -57,8 +58,8 @@ class twitter {
 
   /**
   * @summary Get tweets of the given user
-  * @params {String} username - Tweet username
-  * @params {Object} query - Tweet query object
+  * @param {string} username - Tweet username
+  * @param {object} query - Tweet query object
   *
   * @returns Array of tweets
   */
@@ -68,8 +69,8 @@ class twitter {
 
   /**
   * @summary Get user info
-  * @params {String} username - User id
-  * @params {Object} query - Tweet query object
+  * @param {string} username - User id
+  * @param {object} query - Tweet query object
   *
   * @returns User information
   */
@@ -79,7 +80,7 @@ class twitter {
 
   /**
   * @summary Basic tweet search.
-  * @params {Object} query - Tweet query object
+  * @param {object} query - Tweet query object
   *
   * @returns Tweets of the given user
   */
@@ -89,7 +90,7 @@ class twitter {
 
   /**
   * @summary Get the user timeline.
-  * @params {Object} query - Tweet query object, should include user_id
+  * @param {object} query - Tweet query object, should include user_id
   *
   * @returns Tweets of the given user
   */
@@ -99,8 +100,8 @@ class twitter {
 
   /**
   * @summary Get the next page of tweets.
-  * @params {String} endpoint - Endpoint tha provides the next page
-  * @params {Object} query - Tweet query object, should include max_id or since_id
+  * @param {string} endpoint - Endpoint tha provides the next page
+  * @param {object} query - Tweet query object, should include max_id or since_id
   *
   * @returns Next tweets page
   */
@@ -110,7 +111,7 @@ class twitter {
 
   /**
   * @summary Get a single tweet
-  * @params {String} id - Tweet id
+  * @param {string} id - Tweet id
   * @returns - Tweet object
   */
   async singleTweet (id) {
@@ -119,16 +120,16 @@ class twitter {
 
   /**
   * @summary Count how many tweets corresponds to the query parameter
-  * @params {Object} query - Tweet query
+  * @param {object} query - Tweet query
   * @returns - Tweet count object see
   */
   async countTweets (query) {
-    return await this.request(this.countUrl, query)
+    return await this.request(this.countV2Url, query)
   }
 
   /**
   * @summary Get lat-lng information about the given place
-  * @params {String} id - Tweet place id
+  * @param {string} id - Tweet place id
   * @returns - Array of [lat, lng]
   */
   async geoId (id) {
@@ -137,7 +138,7 @@ class twitter {
 
   /**
   * @summary Returns the sentiment about a query
-  * @params {Object} query - Tweet place id
+  * @param {object} query - Tweet place id
   * @returns - Sentiment analysis
   */
   async sentiment (query) {
