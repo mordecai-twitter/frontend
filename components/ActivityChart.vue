@@ -50,7 +50,6 @@ export default {
       }
     },
     activityHistogram (activity) {
-      console.log(activity)
       const histogram = [...Array(24).keys()].map(() => 0)
       for (const timeSlot of activity) {
         const hour = new Date(timeSlot.start).getHours()

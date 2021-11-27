@@ -4,13 +4,14 @@
       <l-map id="map" :zoom="13" :center="[marker.coordinates.lat, marker.coordinates.lng]" @click="addMarker">
         <l-tile-layer url="http://{s}.tile.osm.org/{z}/{x}/{y}.png" />
         <l-circle
+          v-if="geoEnable"
           v-show="marker"
           :radius="circleRadius"
           :lat-lng="marker ? marker.coordinates : ''"
         />
-        <l-marker v-for="geoTweet in geoTweets" :key="geoTweet.id" :icon="geoTweet.icon" :lat-lng="geoTweet.geo">
+        <l-marker v-for="geoTweet in geoTweets" :key="geoTweet.id" :icon="geoTweet.icon" :lat-lng="geoTweet.geo.coordinates.coordinates">
           <l-popup>
-            <h2>Tweet by: {{ geoTweet.user.name }}</h2>
+            <h2>Tweet by: {{ geoTweet.user.username }}</h2>
             <p> {{ geoTweet.text }} </p>
           </l-popup>
         </l-marker>
@@ -36,13 +37,14 @@ export default {
     LMap,
     LTileLayer,
     LMarker,
-    LPopup,
     LCircle,
+    LPopup,
     ClientOnly
   },
   props: {
     tweets: Array,
-    circleRadius: Number
+    circleRadius: Number,
+    geoEnable: Boolean
   },
   data () {
     return {
@@ -52,17 +54,35 @@ export default {
   },
   watch: {
     async tweets () {
-      const filtered = this.tweets.filter(tweet => tweet.place)
-      const geoTweets = []
-      for (const tweet of filtered) {
-        const longLat = await core.getGeo(tweet.place.id)
-        if (longLat) {
-          tweet.geo = [longLat[1], longLat[0]]
-          tweet.icon = leaflet.icon({ iconUrl: tweet.user.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
-          geoTweets.push(tweet)
+      if (this.geoEnable) {
+        const geoTweets = []
+        for (const tweet of this.tweets) {
+          if (tweet.geo) {
+            const userInfo = await core.getUserInfo(tweet.author_id)
+            tweet.user = userInfo.data
+            tweet.icon = leaflet.icon({ iconUrl: userInfo.data.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
+            if (!tweet.geo.coordinates) {
+              const longLat = await core.getGeo(tweet.geo.place_id)
+              if (longLat) {
+                longLat[0] = longLat[0] + this.getRandomArbitrary(-0.0005, 0.0005)
+                longLat[1] = longLat[1] + this.getRandomArbitrary(-0.0005, 0.0005)
+                tweet.geo.coordinates = {
+                  coordinates: longLat.reverse()
+                }
+                geoTweets.push(tweet)
+              }
+            } else {
+              const longLat = tweet.geo.coordinates.coordinates
+              tweet.geo.coordinates = {
+                coordinates: longLat.reverse()
+              }
+              geoTweets.push(tweet)
+            }
+          }
         }
+        this.geoTweets = geoTweets
+        console.log(this.geoTweets.length)
       }
-      this.geoTweets = geoTweets
     }
   },
   created () {
@@ -75,9 +95,11 @@ export default {
     this.geoTweets = []
   },
   methods: {
+    getRandomArbitrary (min, max) {
+      return Math.random() * (max - min) + min
+    },
     addMarker (event) {
       const coordinates = event.latlng
-      // const activity = await core.dayTweetCount({ query: `point_radius:[${coordinates.lng} ${coordinates.lat} ${this.circleRadius / 1000}km]` }, new Date())
       console.log(event.latlng)
       this.marker = {
         coordinates

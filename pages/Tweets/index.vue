@@ -34,7 +34,9 @@
             w="97%"
           />
         </c-box>
-        <c-checkbox v-model="geoEnable" size="md" variant-color="green" default-is-checked>Enable geolocalization</c-checkbox>
+        <c-flex>
+          <c-checkbox v-model="geoEnable" size="md" variant-color="green">Enable geolocalization</c-checkbox>
+        </c-flex>
         <c-button
           id="searchButton"
           variant-color="black"
@@ -42,8 +44,9 @@
           name=""
           value="Search"
           @click="search"
+          :isDisabled="!(this.keyword || this.username || this.geoEnable)"
         >Search</c-button>
-        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" />
+        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" :geoEnable="geoEnable"/>
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
           <c-slider-filled-track />
@@ -53,7 +56,7 @@
         <c-accordion-item>
           <c-accordion-header>
             <c-box flex="1" text-align="left">
-              Sentiment analysis:
+              Other Info:
             </c-box>
             <c-accordion-icon />
           </c-accordion-header>
@@ -73,6 +76,7 @@
                   <c-tab>Graph</c-tab>
                   <c-tab>Best Tweet</c-tab>
                   <c-tab>Worst Tweet</c-tab>
+                  <c-tab>Activity Chart</c-tab>
                 </c-tab-list>
                 <c-tab-panels>
                   <c-tab-panel>
@@ -81,10 +85,13 @@
                     </c-flex>
                   </c-tab-panel>
                   <c-tab-panel align="left">
-                    <Tweet :key="sentiment.best.tweet.id_str" :tweet="sentiment.best.tweet" />
+                    <Tweet :id="sentiment.best.tweet.id" :key="sentiment.best.tweet.id" />
                   </c-tab-panel>
                   <c-tab-panel align="left">
-                    <Tweet :key="sentiment.worst.tweet.id_str" :tweet="sentiment.worst.tweet" />
+                    <Tweet :id="sentiment.worst.tweet.id" :key="sentiment.worst.tweet.id" />
+                  </c-tab-panel>
+                  <c-tab-panel>
+                    <ActivityChart :activity="this.activity"/>
                   </c-tab-panel>
                 </c-tab-panels>
               </c-tabs>
@@ -95,14 +102,28 @@
       <c-flex direction="column" p="1em">
         <c-flex>
           <c-flex justify="flex-start">
-            <button v-if="tweets.length > 0" id="olderButton" type="button" name="button" @click="nextPage">Older</button>
+            <button
+              v-if="tweets.length > 0"
+              id="olderButton"
+              type="button"
+              name="button"
+              @click="nextPage"
+              >Older</button>
           </c-flex>
-          <c-flex justify="flex-end" w="100%">
-            <button v-if="currentPage" id="recentButton" type="button" name="button" @click="prevPage">Recent</button>
-          </c-flex>
+          <c-flex justify="flex-end">
+              <button
+              v-if="currentPage"
+              id="recentButton"
+              type="button"
+              name="button"
+              @click="prevPage">Recent</button>
+            </c-flex>
         </c-flex>
-        <c-flex id="tweetsContainer" direction="column">
-          <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" />
+        <c-flex id="tweetsContainer" direction="column" w="100%" flexWrap>
+          <!-- <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" /> -->
+          <c-box v-for="tweet in tweets" :key="tweet.id" w="40%" p="4">
+            <Tweet :id="tweet.id" ><div class="spinner" /></Tweet>
+          </c-box>
         </c-flex>
       </c-flex>
     </c-flex>
@@ -111,10 +132,11 @@
 
 <script>
 import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
-import Tweet from '../../components/Tweet'
+import { Tweet } from 'vue-tweet-embed'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
+import ActivityChart from '../../components/ActivityChart'
 export default {
   components: {
     CAccordionItem,
@@ -129,7 +151,8 @@ export default {
     CInput,
     CButton,
     Map,
-    Tweet
+    Tweet,
+    ActivityChart
   },
   data () {
     return {
@@ -145,10 +168,12 @@ export default {
         longitude: Number,
         radius: 1
       },
-      geoEnable: true,
+      geoEnable: false,
       sentiment: undefined,
       isLoaded: false,
-      isLoading: false
+      isLoading: false,
+      searchDisabled: Boolean,
+      activity: Object
     }
   },
   created () {
@@ -156,7 +181,9 @@ export default {
     this.pages = []
     this.currentPage = 0
     this.geocode.longitude = 11.342616
+    this.searchDisabled = true
     this.geocode.latitude = 44.494888
+    this.activity = {}
   },
   methods: {
     displayMapTweets (geocode) {
@@ -173,15 +200,14 @@ export default {
       }
       this.isLoaded = false
       this.isLoading = true
-      const query = await core.createQueryV1({ ...arg })
+      // const query = await core.createQueryV1({ ...arg })
       const queryV2 = await core.createQueryV2({ ...arg })
-      console.log(queryV2)
-      this.paginator = await core.search(query)
+      this.paginator = await core.search(queryV2)
       this.currentPage = 0
       this.tweets = this.paginator.getTweets()
       this.sentiment = (await core.sentiment(queryV2))
+      if (this.geoEnable) { this.activity = await core.dayTweetCount({ query: queryV2.query }, new Date()) }
       if (this.sentiment) {
-        console.log(this.sentiment)
         this.isLoaded = true
       }
       this.isLoading = false
