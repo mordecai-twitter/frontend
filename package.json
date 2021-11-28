@@ -27,7 +27,8 @@
     "vue-chartjs": "^3.5.1",
     "vue-loading-spinner": "^1.0.11",
     "vue-tweet-embed": "^2.4.0",
-    "vue2-leaflet": "^2.7.1"
+    "vue2-leaflet": "^2.7.1",
+    "vuewordcloud": "^18.7.12"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.14.7",
