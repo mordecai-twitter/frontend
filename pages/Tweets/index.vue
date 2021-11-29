@@ -43,10 +43,10 @@
           type="button"
           name=""
           value="Search"
-          :is-disabled="!(keyword || username || geoEnable)"
+          :isDisabled="!(keyword || username || geoEnable)"
           @click="search"
         >Search</c-button>
-        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" :geo-enable="geoEnable" @mapClick="displayMapTweets" />
+        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" :geoEnable="geoEnable" @mapClick="displayMapTweets" />
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
           <c-slider-filled-track />
@@ -95,7 +95,7 @@
                     <ActivityChart :activity="activity" />
                   </c-tab-panel>
                   <c-tab-panel>
-                    <TermCloud :words="termcloud" @onWordClick="onTermCloudWordClick"/>
+                    <TermCloud :words="termcloud" @onWordClick="onTermCloudWordClick" />
                   </c-tab-panel>
                 </c-tab-panels>
               </c-tabs>
@@ -143,7 +143,6 @@ import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
 import ActivityChart from '../../components/ActivityChart'
 import TermCloud from '../../components/TermCloud'
-
 export default {
   components: {
     CAccordionItem,
@@ -160,7 +159,8 @@ export default {
     TermCloud,
     Map,
     Tweet,
-    ActivityChart
+    ActivityChart,
+    TermCloud
   },
   data () {
     return {
@@ -182,7 +182,8 @@ export default {
       isLoaded: false,
       isLoading: false,
       searchDisabled: Boolean,
-      activity: Object
+      activity: Object,
+      termWord: Array
     }
   },
   created () {
@@ -193,6 +194,7 @@ export default {
     this.searchDisabled = true
     this.geocode.latitude = 44.494888
     this.activity = {}
+    this.termWord = []
   },
   methods: {
     displayMapTweets (geocode) {

@@ -18,6 +18,7 @@ module.exports = {
   rules: {
     'vue/singleline-html-element-content-newline': 'off',
     'vue/multiline-html-element-content-newline': 'off',
+    'vue/attribute-hyphenation': 'off',
     'no-console': 'off'
   }
 }
