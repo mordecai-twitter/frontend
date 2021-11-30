@@ -143,10 +143,6 @@ class Core {
     if (geocode.latitude && geocode.longitude && geocode.radius) {
       query.query = `${query.query} point_radius:[${geocode.longitude} ${geocode.latitude} ${geocode.radius}km] has:geo`
     }
-    console.log('\n\n\n')
-    console.log('Make query V2 had: ')
-    console.log(query)
-    console.log('\n\n\n')
     return query
   }
 

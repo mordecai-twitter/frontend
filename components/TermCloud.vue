@@ -75,8 +75,6 @@ export default {
       for (let i = 0; i < maxIndex; i += 1) {
         this.intervals[i] = i > 0 ? this.intervals[i - 1] + Math.floor(this.words.length / (maxIndex + 1)) : Math.floor(this.words.length / (maxIndex + 1))
       }
-
-      console.log('Intervals:', this.intervals)
     },
     wordIndex (word) {
       return this.wordToIndex[word]

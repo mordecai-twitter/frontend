@@ -143,6 +143,7 @@ import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
 import ActivityChart from '../../components/ActivityChart'
 import TermCloud from '../../components/TermCloud'
+import { QueryDirector, V2Builder } from '../../common/query'
 export default {
   components: {
     CAccordionItem,
@@ -159,8 +160,7 @@ export default {
     TermCloud,
     Map,
     Tweet,
-    ActivityChart,
-    TermCloud
+    ActivityChart
   },
   data () {
     return {
@@ -204,21 +204,23 @@ export default {
       }
     },
     async search () {
+      const director = new QueryDirector(new V2Builder())
       const arg = {
         keyword: this.keyword,
         username: this.username,
-        geocode: this.geoEnable ? this.geocode : {}
+        geocode: this.geoEnable ? this.geocode : undefined
       }
+      const v2query = director.makeSearchQuery(arg.keyword, arg.username, arg.geocode).get()
       this.isLoaded = false
       this.isLoading = true
-      // const query = await core.createQueryV1({ ...arg })
-      const queryV2 = await core.createQueryV2({ ...arg })
-      this.paginator = await core.search(queryV2)
+      this.paginator = await core.search(v2query)
       this.currentPage = 0
       this.tweets = this.paginator.getTweets()
-      this.sentiment = (await core.sentiment(queryV2))
-      this.termcloud = await core.termcloud(queryV2)
-      if (this.geoEnable) { this.activity = await core.dayTweetCount({ query: queryV2.query }, new Date()) }
+      this.sentiment = (await core.sentiment(v2query))
+      this.termcloud = await core.termcloud(v2query)
+      if (this.geoEnable) {
+        this.activity = await core.dayTweetCount({ query: v2query.query }, new Date())
+      }
       if (this.sentiment) {
         this.isLoaded = true
       }
