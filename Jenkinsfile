@@ -10,8 +10,16 @@ node {
     }
   }
   stage('Test') {
-    sh "npm install --save"
-    sh "yarn install --save"
+    try {
+      sh "npm install --save"
+    } catch (err) {
+        echo "Failed: ${err}"
+    }
+    try {
+      sh "yarn install"
+    } catch (err) {
+        echo "Failed: ${err}"
+    }
     try {
       sh "npm test"
     }   catch (err) {
