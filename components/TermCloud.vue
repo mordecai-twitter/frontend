@@ -97,8 +97,8 @@ export default {
       } else if (index <= this.intervals[2]) {
         return '#3a9eea'
       } else if (index <= this.intervals[3]) {
-        return '#ff4e69'
-      } else { return '#461e47' }
+        return '#f02e4b'
+      } else { return '#de6488' }
     },
     calculateRotation (word) {
       const chance = new Chance(word[0])
