@@ -29,15 +29,6 @@
 import VueWordCloud from 'vuewordcloud'
 import Chance from 'chance'
 
-function calculateColor ([word, weight]) {
-  return weight > 40 ? '#ffd077' : weight > 17 ? '#3bc4c7' : weight > 10 ? '#3a9eea' : weight > 5 ? '#ff4e69' : '#461e47'
-}
-
-function calculateRotation (word) {
-  const chance = new Chance(word[0])
-  return chance.pickone([0, 1 / 8, 3 / 4, 7 / 8])
-}
-
 export default {
   name: 'Termcloud',
   components: {
@@ -47,14 +38,6 @@ export default {
     words: {
       type: Array,
       default: () => []
-    },
-    color: {
-      type: Function,
-      default: calculateColor
-    },
-    rotation: {
-      type: Function,
-      default: calculateRotation
     }
   },
   data () {
@@ -63,16 +46,65 @@ export default {
       enterAnimation: {
         opacity: 0,
         transform: 'scale3d(0.3,0.3,0.3)'
-      }
+      },
+      color: undefined,
+      rotation: undefined,
+      wordToIndex: {},
+      intervals: []
     }
   },
+  watch: {
+    words () {
+      this.updateWordCloud()
+    }
+  },
+  mounted () {
+    this.color = this.calculateColor
+    this.rotation = this.calculateRotation
+    this.updateWordCloud()
+  },
   methods: {
+    updateWordCloud () {
+      if (!this.words) { return }
+
+      this.wordToIndex = {}
+      this.intervals = []
+      this.words.forEach((elem, index) => { this.wordToIndex[elem[0]] = index })
+
+      const maxIndex = 4
+      for (let i = 0; i < maxIndex; i += 1) {
+        this.intervals[i] = i > 0 ? this.intervals[i - 1] + Math.floor(this.words.length / (maxIndex + 1)) : Math.floor(this.words.length / (maxIndex + 1))
+      }
+
+      console.log('Intervals:', this.intervals)
+    },
+    wordIndex (word) {
+      return this.wordToIndex[word]
+    },
     onWordClick (word) {
       this.$emit('onWordClick', word)
     },
     onHover (word) {
       this.hoverWord = word
+    },
+    calculateColor ([word, weight]) {
+      const index = this.wordIndex(word)
+
+      if (index <= this.intervals[0]) {
+        return '#ffd077'
+      } else if (index <= this.intervals[1]) {
+        return '#3bc4c7'
+      } else if (index <= this.intervals[2]) {
+        return '#3a9eea'
+      } else if (index <= this.intervals[3]) {
+        return '#ff4e69'
+      } else { return '#461e47' }
+    },
+    calculateRotation (word) {
+      const chance = new Chance(word[0])
+      return chance.pickone([0, 1 / 8, 3 / 4, 7 / 8])
     }
+
   }
 }
 </script>
