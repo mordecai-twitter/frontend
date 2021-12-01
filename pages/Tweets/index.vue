@@ -46,6 +46,18 @@
           @click="search"
           :isDisabled="!(this.keyword || this.username || this.geoEnable)"
         >Search</c-button>
+        <c-button
+          id="streamButton"
+          type="button"
+          value="Stream"
+          @click="stream"
+        >Stream</c-button>
+        <c-button
+          id="abortButton"
+          type="button"
+          value="Abort"
+          @click="abort"
+        >Abort</c-button>
         <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" :geoEnable="geoEnable"/>
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
@@ -132,6 +144,7 @@
 
 <script>
 import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
+import { getPreciseDistance } from 'geolib'
 import { Tweet } from 'vue-tweet-embed'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
@@ -219,6 +232,64 @@ export default {
     async nextPage () {
       this.currentPage = await this.paginator.next()
       this.tweets = this.paginator.getTweets()
+    },
+    stream () {
+      const query = {}
+
+      if (!(this.username || this.keyword)) {
+        console.log('Tweet streams require specifying at least a username or a keyword.')
+        return
+      }
+
+      if (this.geoEnable) {
+        // Convert to bounding box
+        // Approximation: if r is the radius, the
+        // rounded up approximation is [-r, r], while
+        // the rounded down approximation is [-r/sqrt(2), r/sqrt(2)]
+        // We use the mean of these two approximations.
+
+        const maxRadius = this.geocode.radius
+        const approximateRadius = (maxRadius + maxRadius / Math.sqrt(2)) / 2
+
+        // Since Earth isn't a perfect sphere, the actual distance between two
+        // coordinates depends on where they are
+        const approximationStep = 0.1
+
+        // getPreciseDistance returns the distance in metres
+        const latitudeToKm = getPreciseDistance(
+          { latitude: this.geocode.latitude, longitude: this.geocode.longitude },
+          { latitude: this.geocode.latitude + approximationStep, longitude: this.geocode.longitude }
+        ) / (approximationStep * 1000)
+
+        const longitudeToKm = getPreciseDistance(
+          { latitude: this.geocode.latitude, longitude: this.geocode.longitude },
+          { latitude: this.geocode.latitude, longitude: this.geocode.longitude + approximationStep }
+        ) / (approximationStep * 1000)
+
+        // Convert from kms to longitude and latitude
+        const latitudeRadius = approximateRadius / latitudeToKm
+        const longitudeRadius = approximateRadius / longitudeToKm
+
+        const top = this.geocode.latitude + latitudeRadius
+        const bottom = this.geocode.latitude - latitudeRadius
+        const left = this.geocode.longitude - longitudeRadius
+        const right = this.geocode.longitude + latitudeRadius
+
+        query.locations = `${left},${bottom},${right},${top}`
+      }
+
+      if (this.username) {
+        query.user = this.username
+      }
+
+      if (this.keyword) {
+        query.keywords = this.keyword
+      }
+
+      core.stream(query, console.log)
+    },
+    abort () {
+      core.abortStream()
     }
   }
 }

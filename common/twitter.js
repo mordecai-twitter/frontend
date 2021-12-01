@@ -19,6 +19,7 @@ class twitter {
     this.userTweetsUrl = 'statuses/user_timeline'
     this.tweetUrl = 'statuses/show'
     this.geoIdUrl = 'geo/id'
+    this.streamUrl = 'stream'
     // V2 urls
     this.countV2Url = this.v2Url + 'tweets/counts/recent'
     this.searchV2Url = this.v2Url + 'tweets/search/all'
@@ -86,6 +87,65 @@ class twitter {
   */
   async search (query) {
     return await this.request(this.searchV2Url, query)
+  }
+
+  stream (query, callback) {
+    const parameters = Object.entries(query).map(([k, v]) => `${k}=${v}`).join('&')
+    const abortController = new AbortController()
+    let done = false
+
+    fetch(this.baseURL + this.streamUrl + '?' + parameters, { signal: abortController.signal })
+      .then(async (response) => {
+        const reader = await response.body.getReader()
+        let buffer = ''
+
+        while (!done) {
+          const result = await reader.read()
+          done = done || result.done
+
+          // It's possible to receive more than one tweet at once,
+          // so we split them
+          buffer += new TextDecoder().decode(result.value)
+
+          let curlyCount = 0
+          let insideQuotes = false
+
+          for (let i = 0; i < buffer.length; i++) {
+            if (buffer[i] === '\\') {
+              i += 1
+              if (i >= buffer.length) {
+                break
+              }
+              continue
+            }
+            if (buffer[i] === '"') {
+              insideQuotes = !insideQuotes
+            }
+
+            if (!insideQuotes) {
+              if (buffer[i] === '{') {
+                curlyCount++
+              }
+
+              if (buffer[i] === '}') {
+                curlyCount--
+
+                if (curlyCount === 0) {
+                  const decodedTweet = JSON.parse(buffer.substring(0, i + 1))
+                  buffer = buffer.substring(i + 1)
+                  i = -1
+                  callback(decodedTweet)
+                }
+              }
+            }
+          }
+        }
+      })
+    // This callback will abort the stream
+    return () => {
+      done = true
+      abortController.abort()
+    }
   }
 
   /**

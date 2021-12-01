@@ -19,6 +19,7 @@
     "core-js": "^3.15.1",
     "dotenv": "^10.0.0",
     "epic-spinners": "^1.1.0",
+    "geolib": "^3.3.3",
     "jsdoc": "^3.6.7",
     "leaflet": "^1.7.1",
     "nuxt": "^2.15.8",
