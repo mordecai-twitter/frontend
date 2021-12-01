@@ -89,7 +89,7 @@ class twitter {
     return await this.request(this.searchV2Url, query)
   }
 
-  stream (query, callback) {
+  stream (query, callback, errorCallback) {
     const parameters = Object.entries(query).map(([k, v]) => `${k}=${v}`).join('&')
     const abortController = new AbortController()
     let done = false
@@ -141,6 +141,8 @@ class twitter {
           }
         }
       })
+      .catch(errorCallback)
+
     // This callback will abort the stream
     return () => {
       done = true

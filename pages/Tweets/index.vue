@@ -39,21 +39,26 @@
         </c-flex>
         <c-button
           id="searchButton"
+          name="searchButton"
           variant-color="black"
           type="button"
-          name=""
           value="Search"
           @click="search"
           :isDisabled="!(this.keyword || this.username || this.geoEnable)"
         >Search</c-button>
         <c-button
+          v-if="!this.isStreaming"
           id="streamButton"
+          variant-color="black"
           type="button"
           value="Stream"
           @click="stream"
+          :isDisabled="!this.username && !this.keyword"
         >Stream</c-button>
         <c-button
+          v-if="this.isStreaming"
           id="abortButton"
+          variant-color="black"
           type="button"
           value="Abort"
           @click="abort"
@@ -133,8 +138,8 @@
         </c-flex>
         <c-flex id="tweetsContainer" direction="column" w="100%" flexWrap>
           <!-- <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" /> -->
-          <c-box v-for="tweet in tweets" :key="tweet.id" w="40%" p="4">
-            <Tweet :id="tweet.id" ><div class="spinner" /></Tweet>
+          <c-box v-for="tweet in tweets" :key="tweet.id+Math.random(1000)+Date.now()" p="4">
+            <Tweet :id="tweet.id" :tweet="tweet"/>
           </c-box>
         </c-flex>
       </c-flex>
@@ -145,7 +150,7 @@
 <script>
 import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
 import { getPreciseDistance } from 'geolib'
-import { Tweet } from 'vue-tweet-embed'
+import Tweet from '../../components/Tweet'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
@@ -185,6 +190,7 @@ export default {
       sentiment: undefined,
       isLoaded: false,
       isLoading: false,
+      isStreaming: false,
       searchDisabled: Boolean,
       activity: Object
     }
@@ -286,9 +292,19 @@ export default {
         query.keywords = this.keyword
       }
 
-      core.stream(query, console.log)
+      core.stream(query, (tweet) => {
+        this.isStreaming = true
+        if (this.tweets.length > 30) {
+          this.tweets.pop()
+        }
+        tweet.id = tweet.id.toString()
+        this.tweets.unshift(tweet)
+      }, () => {
+        this.isStreaming = false
+      })
     },
     abort () {
+      this.isStreaming = false
       core.abortStream()
     }
   }

@@ -163,11 +163,11 @@ class Core {
     }
   }
 
-  stream (query, callback) {
+  stream (query, callback, errorCallback) {
     this.abortStream()
 
     try {
-      this.abortStreamCallback = this.api.stream(query, callback)
+      this.abortStreamCallback = this.api.stream(query, callback, errorCallback)
     } catch (e) {
       return this.handleError(e)
     }
