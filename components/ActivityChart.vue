@@ -4,7 +4,12 @@ import { Bar } from 'vue-chartjs'
 
 export default {
   extends: Bar,
-  props: ['activity'],
+  props: {
+    activity: {
+      type: () => {},
+      default: () => {}
+    }
+  },
   data () {
     return {
       stepSize: Number

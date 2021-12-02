@@ -23,14 +23,16 @@ class twitter {
     this.countV2Url = this.v2Url + 'tweets/counts/recent'
     this.searchV2Url = this.v2Url + 'tweets/search/all'
     this.userByIdUrl = this.v2Url + 'user/'
+
     // Custom urls
     this.sentimentUrl = 'sentiment'
+    this.termCloudUrl = 'termcloud'
   }
 
   /**
   * @summary Generic request function
   * @param {string} url - Tweet back-end url
-  * @param {object} query - Tweet query object
+  * @param {Object} query - Tweet query object
   *
   * @returns Tweet response body
   */
@@ -48,7 +50,7 @@ class twitter {
 
   /**
   * @summary Get tweets place informations
-  * @param {object} query - Tweet query object, should include lat-lng or a query text
+  * @param {Object} query - Tweet query object, should include lat-lng or a query text
   *
   * @returns Array of possible locations
   */
@@ -59,7 +61,7 @@ class twitter {
   /**
   * @summary Get tweets of the given user
   * @param {string} username - Tweet username
-  * @param {object} query - Tweet query object
+  * @param {Object} query - Tweet query object
   *
   * @returns Array of tweets
   */
@@ -70,7 +72,7 @@ class twitter {
   /**
   * @summary Get user info
   * @param {string} username - User id
-  * @param {object} query - Tweet query object
+  * @param {Object} query - Tweet query object
   *
   * @returns User information
   */
@@ -80,7 +82,7 @@ class twitter {
 
   /**
   * @summary Basic tweet search.
-  * @param {object} query - Tweet query object
+  * @param {Object} query - Tweet query object
   *
   * @returns Tweets of the given user
   */
@@ -90,7 +92,7 @@ class twitter {
 
   /**
   * @summary Get the user timeline.
-  * @param {object} query - Tweet query object, should include user_id
+  * @param {Object} query - Tweet query object, should include user_id
   *
   * @returns Tweets of the given user
   */
@@ -101,7 +103,7 @@ class twitter {
   /**
   * @summary Get the next page of tweets.
   * @param {string} endpoint - Endpoint tha provides the next page
-  * @param {object} query - Tweet query object, should include max_id or since_id
+  * @param {Object} query - Tweet query object, should include max_id or since_id
   *
   * @returns Next tweets page
   */
@@ -120,7 +122,7 @@ class twitter {
 
   /**
   * @summary Count how many tweets corresponds to the query parameter
-  * @param {object} query - Tweet query
+  * @param {Object} query - Tweet query
   * @returns - Tweet count object see
   */
   async countTweets (query) {
@@ -138,11 +140,20 @@ class twitter {
 
   /**
   * @summary Returns the sentiment about a query
-  * @param {object} query - Tweet place id
+  * @param {Object} query - Tweet place id
   * @returns - Sentiment analysis
   */
   async sentiment (query) {
     return await this.request(this.sentimentUrl, query)
+  }
+
+  /**
+  * @summary Returns the most frequent words about a query
+  * @param {Object} query - Tweet place id
+  * @returns - Frequency analysis
+  */
+  async termcloud (query) {
+    return await this.request(this.termCloudUrl, query)
   }
 }
 

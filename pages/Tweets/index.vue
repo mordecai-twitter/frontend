@@ -43,10 +43,10 @@
           type="button"
           name=""
           value="Search"
+          :isDisabled="!(keyword || username || geoEnable)"
           @click="search"
-          :isDisabled="!(this.keyword || this.username || this.geoEnable)"
         >Search</c-button>
-        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" :geoEnable="geoEnable"/>
+        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" :geoEnable="geoEnable" @mapClick="displayMapTweets" />
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
           <c-slider-filled-track />
@@ -76,7 +76,8 @@
                   <c-tab>Graph</c-tab>
                   <c-tab>Best Tweet</c-tab>
                   <c-tab>Worst Tweet</c-tab>
-                  <c-tab>Activity Chart</c-tab>
+                  <c-tab v-if="geoEnable">Activity Chart</c-tab>
+                  <c-tab>Term Cloud</c-tab>
                 </c-tab-list>
                 <c-tab-panels>
                   <c-tab-panel>
@@ -90,8 +91,11 @@
                   <c-tab-panel align="left">
                     <Tweet :id="sentiment.worst.tweet.id" :key="sentiment.worst.tweet.id" />
                   </c-tab-panel>
+                  <c-tab-panel v-if="geoEnable">
+                    <ActivityChart :activity="activity" />
+                  </c-tab-panel>
                   <c-tab-panel>
-                    <ActivityChart :activity="this.activity"/>
+                    <TermCloud :words="termcloud" @onWordClick="onTermCloudWordClick" />
                   </c-tab-panel>
                 </c-tab-panels>
               </c-tabs>
@@ -108,21 +112,22 @@
               type="button"
               name="button"
               @click="nextPage"
-              >Older</button>
+            >Older</button>
           </c-flex>
           <c-flex justify="flex-end">
-              <button
+            <button
               v-if="currentPage"
               id="recentButton"
               type="button"
               name="button"
-              @click="prevPage">Recent</button>
-            </c-flex>
+              @click="prevPage"
+            >Recent</button>
+          </c-flex>
         </c-flex>
-        <c-flex id="tweetsContainer" direction="column" w="100%" flexWrap>
+        <c-flex id="tweetsContainer" direction="column" w="100%" flex-wrap>
           <!-- <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" /> -->
           <c-box v-for="tweet in tweets" :key="tweet.id" w="40%" p="4">
-            <Tweet :id="tweet.id" ><div class="spinner" /></Tweet>
+            <Tweet :id="tweet.id"><div class="spinner" /></Tweet>
           </c-box>
         </c-flex>
       </c-flex>
@@ -137,6 +142,8 @@ import Map from '../../components/Map'
 import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
 import ActivityChart from '../../components/ActivityChart'
+import TermCloud from '../../components/TermCloud'
+import { QueryDirector, V2Builder } from '../../common/query'
 export default {
   components: {
     CAccordionItem,
@@ -150,6 +157,7 @@ export default {
     CFlex,
     CInput,
     CButton,
+    TermCloud,
     Map,
     Tweet,
     ActivityChart
@@ -170,10 +178,12 @@ export default {
       },
       geoEnable: false,
       sentiment: undefined,
+      termcloud: undefined,
       isLoaded: false,
       isLoading: false,
       searchDisabled: Boolean,
-      activity: Object
+      activity: Object,
+      termWord: Array
     }
   },
   created () {
@@ -184,6 +194,7 @@ export default {
     this.searchDisabled = true
     this.geocode.latitude = 44.494888
     this.activity = {}
+    this.termWord = []
   },
   methods: {
     displayMapTweets (geocode) {
@@ -193,20 +204,23 @@ export default {
       }
     },
     async search () {
+      const director = new QueryDirector(new V2Builder())
       const arg = {
         keyword: this.keyword,
         username: this.username,
-        geocode: this.geoEnable ? this.geocode : {}
+        geocode: this.geoEnable ? this.geocode : undefined
       }
+      const v2query = director.makeSearchQuery(arg.keyword, arg.username, arg.geocode).get()
       this.isLoaded = false
       this.isLoading = true
-      // const query = await core.createQueryV1({ ...arg })
-      const queryV2 = await core.createQueryV2({ ...arg })
-      this.paginator = await core.search(queryV2)
+      this.paginator = await core.search(v2query)
       this.currentPage = 0
       this.tweets = this.paginator.getTweets()
-      this.sentiment = (await core.sentiment(queryV2))
-      if (this.geoEnable) { this.activity = await core.dayTweetCount({ query: queryV2.query }, new Date()) }
+      this.sentiment = (await core.sentiment(v2query))
+      this.termcloud = await core.termcloud(v2query)
+      if (this.geoEnable) {
+        this.activity = await core.dayTweetCount({ query: v2query.query }, new Date())
+      }
       if (this.sentiment) {
         this.isLoaded = true
       }
@@ -219,6 +233,10 @@ export default {
     async nextPage () {
       this.currentPage = await this.paginator.next()
       this.tweets = this.paginator.getTweets()
+    },
+    async onTermCloudWordClick (word) {
+      this.keyword = word[0]
+      await this.search()
     }
   }
 }

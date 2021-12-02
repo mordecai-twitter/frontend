@@ -4,7 +4,7 @@ import Twitter from './twitter'
 class Paginator {
   /**
   * @summary Error Handler
-  * @param {object} error - Object containing the error informations
+  * @param {Object} error - Object containing the error informations
   *
   */
   handleError (err) {
@@ -122,10 +122,10 @@ class Core {
   * @summary Query Generator given keyword, user and geo for Twitter API V2
   * @param {string} keyword - Keyword to search
   * @param {string} username - Username to search
-  * @param {object} geocode - Username to search
+  * @param {Object} geocode - Username to search
   * @param {string} place - Location to search
   *
-  * @return {object} Object containing the query fields
+  * @return {Object} Object containing the query fields
   */
   createQueryV2 ({ keyword, username = '', geocode = {}/* , place = '' */ }) {
     const query = {
@@ -151,7 +151,7 @@ class Core {
   * @param {string} query - Text to search
   * @param {string} place - Location
   *
-  * @return {object[]} Geolocalized tweets matching query and place parameters
+  * @return {Object[]} Geolocalized tweets matching query and place parameters
   */
   async search (query) {
     try {
@@ -166,7 +166,7 @@ class Core {
   * @summary Search a single tweets
   * @param {string} id - Tweet id
   *
-  * @return {object} tweet with the defined id
+  * @return {Object} tweet with the defined id
   */
   async singleTweet (id) {
     try {
@@ -181,7 +181,7 @@ class Core {
   * @summary Get activity info about the given query and day
   * @param {object} query - Tweet id
   * @param {date} date - Day
-  * @return {object} tweet with the defined id
+  * @return {Object} tweet with the defined id
   */
 
   async dayTweetCount (query, date) {
@@ -220,10 +220,28 @@ class Core {
   }
 
   /**
+  * @summary Returns the most frequent words about a query
+  * @param {Object} query - Tweet place id
+  * @returns - Frequency analysis
+  */
+  async termcloud (query) {
+    try {
+      const analysis = await this.api.termcloud(query)
+      if (analysis) {
+        const processedAnalysis = analysis.map(x => [x.word, x.freq])
+        return processedAnalysis
+      }
+      return undefined
+    } catch (error) {
+      return this.handleError(error)
+    }
+  }
+
+  /**
   * @summary Search a User by Id
   * @param {string} id - User id
   *
-  * @return {object} - Object containing all the user info
+  * @return {Object} - Object containing all the user info
   */
   async getUserInfo (id) {
     const query = {

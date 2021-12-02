@@ -10,8 +10,16 @@ node {
     }
   }
   stage('Test') {
-    sh "npm install --save"
-    sh "yarn install --save"
+    try {
+      sh "npm install --save"
+    } catch (err) {
+        echo "Failed: ${err}"
+    }
+    try {
+      sh "yarn install"
+    } catch (err) {
+        echo "Failed: ${err}"
+    }
     try {
       sh "npm test"
     }   catch (err) {
@@ -19,9 +27,9 @@ node {
     }
   }
   stage('Deploy') {
-    sh "ssh-keyscan -H marullo.cs.unibo.it >> ~/.ssh/known_hosts"
+    sh "ssh-keyscan -H donprocopio.cs.unibo.it >> ~/.ssh/known_hosts"
     sh "yarn install --save"
     sh "yarn generate"
-    sh "scp -r dist/* andrea.zecca3@marullo.cs.unibo.it:/home/web/site202137/html"
+    sh "scp -r dist/* andrea.zecca3@donprocopio.cs.unibo.it:/home/web/site202137/html"
   }
 }
