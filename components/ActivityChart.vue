@@ -5,10 +5,7 @@ import { Bar } from 'vue-chartjs'
 export default {
   extends: Bar,
   props: {
-    activity: {
-      type: () => {},
-      default: () => {}
-    }
+    activity: []
   },
   data () {
     return {

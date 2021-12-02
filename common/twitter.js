@@ -92,7 +92,9 @@ class twitter {
   }
 
   stream (query, callback, errorCallback) {
-    const parameters = Object.entries(query).map(([k, v]) => `${k}=${v}`).join('&')
+    const regExHash = /#/g
+    const regExTag = /@/g
+    const parameters = Object.entries(query).map(([k, v]) => `${k}=${v.replace(regExHash, '%23').replace(regExTag, '%35')}`).join('&')
     const abortController = new AbortController()
     let done = false
 

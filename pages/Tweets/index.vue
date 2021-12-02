@@ -212,7 +212,7 @@ export default {
     this.geocode.longitude = 11.342616
     this.searchDisabled = true
     this.geocode.latitude = 44.494888
-    this.activity = {}
+    this.activity = []
     this.termWord = []
   },
   methods: {
