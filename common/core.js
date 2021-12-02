@@ -32,6 +32,7 @@ class Paginator {
     }
     this.api = new Twitter()
     this.query = query
+    this.abortStreamCallback = null
   }
 
   /**
@@ -159,6 +160,23 @@ class Core {
       return new Paginator(tweets, query)
     } catch (e) {
       return this.handleError(e)
+    }
+  }
+
+  stream (query, callback, errorCallback) {
+    this.abortStream()
+
+    try {
+      this.abortStreamCallback = this.api.stream(query, callback, errorCallback)
+    } catch (e) {
+      return this.handleError(e)
+    }
+  }
+
+  abortStream () {
+    if (this.abortStreamCallback) {
+      this.abortStreamCallback()
+      this.abortStreamCallback = null
     }
   }
 

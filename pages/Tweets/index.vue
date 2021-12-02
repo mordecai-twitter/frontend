@@ -39,14 +39,31 @@
         </c-flex>
         <c-button
           id="searchButton"
+          name="searchButton"
           variant-color="black"
           type="button"
-          name=""
           value="Search"
           :isDisabled="!(keyword || username || geoEnable)"
           @click="search"
         >Search</c-button>
-        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" :geoEnable="geoEnable" @mapClick="displayMapTweets" />
+        <c-button
+          v-if="!this.isStreaming"
+          id="streamButton"
+          variant-color="black"
+          type="button"
+          value="Stream"
+          @click="stream"
+          :isDisabled="!this.username && !this.keyword"
+        >Stream</c-button>
+        <c-button
+          v-if="this.isStreaming"
+          id="abortButton"
+          variant-color="black"
+          type="button"
+          value="Abort"
+          @click="abort"
+        >Abort</c-button>
+        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" :geoEnable="geoEnable"/>
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
           <c-slider-filled-track />
@@ -126,8 +143,8 @@
         </c-flex>
         <c-flex id="tweetsContainer" direction="column" w="100%" flex-wrap>
           <!-- <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" /> -->
-          <c-box v-for="tweet in tweets" :key="tweet.id" w="40%" p="4">
-            <Tweet :id="tweet.id"><div class="spinner" /></Tweet>
+          <c-box v-for="tweet in tweets" :key="tweet.id+Math.random(1000)+Date.now()" p="4">
+            <Tweet :id="tweet.id" :tweet="tweet"/>
           </c-box>
         </c-flex>
       </c-flex>
@@ -137,7 +154,8 @@
 
 <script>
 import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
-import { Tweet } from 'vue-tweet-embed'
+import { getPreciseDistance } from 'geolib'
+import Tweet from '../../components/Tweet'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
@@ -181,6 +199,7 @@ export default {
       termcloud: undefined,
       isLoaded: false,
       isLoading: false,
+      isStreaming: false,
       searchDisabled: Boolean,
       activity: Object,
       termWord: Array
@@ -237,6 +256,74 @@ export default {
     async onTermCloudWordClick (word) {
       this.keyword = word[0]
       await this.search()
+    }
+    stream () {
+      const query = {}
+
+      if (!(this.username || this.keyword)) {
+        console.log('Tweet streams require specifying at least a username or a keyword.')
+        return
+      }
+
+      if (this.geoEnable) {
+        // Convert to bounding box
+        // Approximation: if r is the radius, the
+        // rounded up approximation is [-r, r], while
+        // the rounded down approximation is [-r/sqrt(2), r/sqrt(2)]
+        // We use the mean of these two approximations.
+
+        const maxRadius = this.geocode.radius
+        const approximateRadius = (maxRadius + maxRadius / Math.sqrt(2)) / 2
+
+        // Since Earth isn't a perfect sphere, the actual distance between two
+        // coordinates depends on where they are
+        const approximationStep = 0.1
+
+        // getPreciseDistance returns the distance in metres
+        const latitudeToKm = getPreciseDistance(
+          { latitude: this.geocode.latitude, longitude: this.geocode.longitude },
+          { latitude: this.geocode.latitude + approximationStep, longitude: this.geocode.longitude }
+        ) / (approximationStep * 1000)
+
+        const longitudeToKm = getPreciseDistance(
+          { latitude: this.geocode.latitude, longitude: this.geocode.longitude },
+          { latitude: this.geocode.latitude, longitude: this.geocode.longitude + approximationStep }
+        ) / (approximationStep * 1000)
+
+        // Convert from kms to longitude and latitude
+        const latitudeRadius = approximateRadius / latitudeToKm
+        const longitudeRadius = approximateRadius / longitudeToKm
+
+        const top = this.geocode.latitude + latitudeRadius
+        const bottom = this.geocode.latitude - latitudeRadius
+        const left = this.geocode.longitude - longitudeRadius
+        const right = this.geocode.longitude + latitudeRadius
+
+        query.locations = `${left},${bottom},${right},${top}`
+      }
+
+      if (this.username) {
+        query.user = this.username
+      }
+
+      if (this.keyword) {
+        query.keywords = this.keyword
+      }
+
+      core.stream(query, (tweet) => {
+        this.isStreaming = true
+        if (this.tweets.length > 30) {
+          this.tweets.pop()
+        }
+        tweet.id = tweet.id.toString()
+        this.tweets.unshift(tweet)
+      }, () => {
+        this.isStreaming = false
+      })
+    },
+    abort () {
+      this.isStreaming = false
+      core.abortStream()
     }
   }
 }
