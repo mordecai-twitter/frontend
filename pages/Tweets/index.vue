@@ -143,8 +143,8 @@
         </c-flex>
         <c-flex id="tweetsContainer" direction="column" w="100%" flex-wrap>
           <!-- <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" /> -->
-          <c-box v-for="tweet in tweets" :key="tweet.id+Math.random(1000)+Date.now()" p="4">
-            <Tweet :id="tweet.id" :tweet="tweet"/>
+          <c-box v-for="tweet in tweets" :key="(tweet.id_str || tweet.id)" p="4">
+            <Tweet :id="tweet.id_str || tweet.id" />
           </c-box>
         </c-flex>
       </c-flex>
@@ -155,7 +155,7 @@
 <script>
 import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
 import { getPreciseDistance } from 'geolib'
-import Tweet from '../../components/Tweet'
+import { Tweet } from 'vue-tweet-embed'
 import Map from '../../components/Map'
 import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
@@ -223,6 +223,7 @@ export default {
       }
     },
     async search () {
+      this.tweets = []
       const director = new QueryDirector(new V2Builder())
       const arg = {
         keyword: this.keyword,
@@ -256,8 +257,9 @@ export default {
     async onTermCloudWordClick (word) {
       this.keyword = word[0]
       await this.search()
-    }
+    },
     stream () {
+      this.tweets = []
       const query = {}
 
       if (!(this.username || this.keyword)) {
