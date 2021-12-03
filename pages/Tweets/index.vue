@@ -47,23 +47,28 @@
           @click="search"
         >Search</c-button>
         <c-button
-          v-if="!this.isStreaming"
+          v-if="!isStreaming"
           id="streamButton"
           variant-color="black"
           type="button"
           value="Stream"
+          :isDisabled="!username && !keyword"
           @click="stream"
-          :isDisabled="!this.username && !this.keyword"
         >Stream</c-button>
         <c-button
-          v-if="this.isStreaming"
+          v-if="isStreaming"
           id="abortButton"
           variant-color="black"
           type="button"
           value="Abort"
           @click="abort"
         >Abort</c-button>
-        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" :geoEnable="geoEnable"/>
+        <c-button
+          variant-color="black"
+          type="button"
+          @click="contestResult"
+        >Contest</c-button>
+        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" :geoEnable="geoEnable" @mapClick="displayMapTweets" />
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
           <c-slider-filled-track />
@@ -161,6 +166,7 @@ import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
 import ActivityChart from '../../components/ActivityChart'
 import TermCloud from '../../components/TermCloud'
+import { Contest } from '../../common/contest'
 import { QueryDirector, V2Builder } from '../../common/query'
 export default {
   components: {
@@ -258,6 +264,14 @@ export default {
       this.keyword = word[0]
       await this.search()
     },
+
+    async contestResult () {
+      const contest = new Contest(this.keyword)
+      await contest.init()
+      const votes = contest.getVotes()
+      console.log(votes)
+    },
+
     stream () {
       this.tweets = []
       const query = {}

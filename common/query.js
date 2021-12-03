@@ -127,6 +127,7 @@ class V1Builder extends QueryBuilder {
 class V2Builder extends QueryBuilder {
   setExpansion (expansion, value) {
     this.query.appendString(expansion, ',', '', '', value)
+    return this
   }
 
   setKeyword (keyword) {
@@ -176,6 +177,15 @@ class QueryDirector {
       this.builder.setGeocode(geocode)
     }
     return this.builder.build()
+  }
+
+  makeContestQuery (keyword) {
+    const builder = new V2Builder()
+    if (keyword && typeof keyword === 'string') {
+      builder.setExpansion('tweet.fields', 'author_id')
+      builder.setKeyword(keyword)
+    }
+    return builder.build()
   }
 }
 

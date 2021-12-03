@@ -61,6 +61,7 @@ class Paginator {
       }
     } catch (err) {
       this.handleError(err)
+      return this.index
     }
     return this.index
   }
