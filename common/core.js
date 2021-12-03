@@ -176,7 +176,7 @@ class Core {
 
   abortStream () {
     if (this.abortStreamCallback) {
-      this.abortStreamCallback()
+      this.abortStreamCallbacks()
       this.abortStreamCallback = null
     }
   }
@@ -189,8 +189,7 @@ class Core {
   */
   async singleTweet (id) {
     try {
-      const response = await this.api.singleTweet(id)
-      return response
+      return await this.api.singleTweet(id)
     } catch (e) {
       return this.handleError(e)
     }

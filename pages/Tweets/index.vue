@@ -268,8 +268,7 @@ export default {
     async contestResult () {
       const contest = new Contest(this.keyword)
       await contest.init()
-      const votes = contest.getVotes()
-      console.log(votes)
+      contest.live()
     },
 
     stream () {
