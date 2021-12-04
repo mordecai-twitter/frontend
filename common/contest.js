@@ -66,7 +66,7 @@ class Contest {
   * @param {Object} votes - Real time votes to update
   *
   */
-  live () {
+  live (callback) {
     const keyword = `#UniboSWE3 #Contest #${this.name}`
     const query = {}
     query.keywords = keyword
@@ -82,6 +82,7 @@ class Contest {
         console.log('Is proposal')
         this.addProposal(tweet)
       }
+      callback(this.getVotes())
     }, () => {
       this.isStreaming = false
     })

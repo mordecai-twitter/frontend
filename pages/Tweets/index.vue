@@ -67,7 +67,7 @@
           variant-color="black"
           type="button"
           @click="contestResult"
-        >Contest</c-button>
+        >Contest {{ votes }}</c-button>
         <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" :geoEnable="geoEnable" @mapClick="displayMapTweets" />
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
@@ -208,7 +208,8 @@ export default {
       isStreaming: false,
       searchDisabled: Boolean,
       activity: Object,
-      termWord: Array
+      termWord: Array,
+      votes: {}
     }
   },
   created () {
@@ -268,7 +269,10 @@ export default {
     async contestResult () {
       const contest = new Contest(this.keyword)
       await contest.init()
-      contest.live()
+      this.votes = contest.getVotes()
+      contest.live((data) => {
+        this.votes = data
+      })
     },
 
     stream () {
