@@ -15,5 +15,8 @@
     <NuxtLink to="/tweets">
       <c-heading size="md">Tweets</c-heading>
     </NuxtLink>
+    <NuxtLink to="/contest">
+      <c-heading size="md">Contest</c-heading>
+    </NuxtLink>
   </c-flex>
 </template>

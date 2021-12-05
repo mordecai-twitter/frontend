@@ -6,7 +6,7 @@ class Contest {
   constructor (name) {
     this.name = name
 
-    this.partecipants = {}
+    this.participants = {}
     this.voters = {}
     this.api = new Twitter()
     this.isStreaming = false
@@ -14,14 +14,22 @@ class Contest {
 
   getVotes () {
     const votes = {}
-    console.log(this.partecipants)
-    for (const partecipant of Object.values(this.partecipants)) {
-      votes[partecipant.getProposal()] = partecipant.getVotes()
+    console.log(this.participants)
+    for (const participant of Object.values(this.participants)) {
+      votes[participant.getProposal()] = participant.getVotes()
     }
     return votes
   }
 
-  async fetchProposal () {
+  static async searchContest (name) {
+    const keyword = `#UniboSWE3 #Contest #${name} #NewContest`
+    const director = new QueryDirector(new V2Builder())
+    const query = director.makeContestQuery(keyword).get()
+    const res = await (new Twitter()).contest(query)
+    return res.data
+  }
+
+  async fetchProposals () {
     const keyword = `#UniboSWE3 #Contest #${this.name} #Proposal`
     const director = new QueryDirector(new V2Builder())
     const query = director.makeContestQuery(keyword).get()
@@ -33,18 +41,19 @@ class Contest {
   }
 
   addProposal (proposal) {
-    const proposalName = proposal.text.match(/#_[A-Za-z]*/g)[0]
-    if (!this.partecipants[proposalName]) {
-      this.partecipants[proposalName] = new Partecipant(proposal.author_id, proposalName)
+    const proposalName = proposal.text.match(/#_[A-Za-z_]*/g)[0]
+    if (!this.participants[proposalName]) {
+      this.participants[proposalName] = new Participant(proposal.author_id, proposalName)
     }
   }
 
   addVoter (proposal) {
-    const proposalName = proposal.text.match(/#_[A-Za-z]*/g)[0]
+    const proposalName = proposal.text.match(/#_[A-Za-z_]*/g)[0]
     if (!this.voters[proposal.author_id]) {
       this.voters[proposal.author_id] = new Voter(proposal.author_id)
     }
-    this.voters[proposal.author_id].addVote(this.partecipants[proposalName])
+    // TODO: Allow voters to vote non-proposed books
+    this.voters[proposal.author_id]?.addVote(this.participants[proposalName])
   }
 
   async fetchVotes () {
@@ -59,6 +68,8 @@ class Contest {
       // #uniboswe3 #contest #nomeContest #Proposal #nomePrposta
       this.addVoter(proposal)
     }
+
+    return this.getVotes()
   }
 
   /**
@@ -82,7 +93,7 @@ class Contest {
         console.log('Is proposal')
         this.addProposal(tweet)
       }
-      callback(this.getVotes())
+      callback(this.getVotes(), this.participants)
     }, () => {
       this.isStreaming = false
     })
@@ -94,9 +105,9 @@ class Contest {
   }
 
   async init () {
-    await this.fetchProposal()
+    await this.fetchProposals()
     await this.fetchVotes()
-    console.log(this.partecipants)
+    console.log(this.participants)
     console.log(this.voters)
   }
 }
@@ -121,17 +132,17 @@ class Voter extends User {
     this.votes = []
   }
 
-  addVote (partecipant) {
+  addVote (participant) {
     if (this.votes.length >= 10) {
       const removed = this.votes.pop()
       removed.removeVote()
     }
-    partecipant.addVote()
-    this.votes.unshift(partecipant)
+    participant.addVote()
+    this.votes.unshift(participant)
   }
 }
 
-class Partecipant extends User {
+class Participant extends User {
   constructor (id, proposal) {
     super(id)
     this.proposal = proposal
