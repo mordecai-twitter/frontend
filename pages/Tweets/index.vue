@@ -63,11 +63,6 @@
           value="Abort"
           @click="abort"
         >Abort</c-button>
-        <c-button
-          variant-color="black"
-          type="button"
-          @click="contestResult"
-        >Contest {{ votes }}</c-button>
         <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" :geoEnable="geoEnable" @mapClick="displayMapTweets" />
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
@@ -166,7 +161,6 @@ import { core } from '../../common/core'
 import SentimentChart from '../../components/SentimentChart'
 import ActivityChart from '../../components/ActivityChart'
 import TermCloud from '../../components/TermCloud'
-import { Contest } from '../../common/contest'
 import { QueryDirector, V2Builder } from '../../common/query'
 export default {
   components: {
@@ -208,8 +202,7 @@ export default {
       isStreaming: false,
       searchDisabled: Boolean,
       activity: Object,
-      termWord: Array,
-      votes: {}
+      termWord: Array
     }
   },
   created () {
@@ -265,16 +258,6 @@ export default {
       this.keyword = word[0]
       await this.search()
     },
-
-    async contestResult () {
-      const contest = new Contest(this.keyword)
-      await contest.init()
-      this.votes = contest.getVotes()
-      contest.live((data) => {
-        this.votes = data
-      })
-    },
-
     stream () {
       this.tweets = []
       const query = {}
