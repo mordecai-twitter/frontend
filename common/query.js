@@ -179,4 +179,4 @@ class QueryDirector {
   }
 }
 
-export { QueryDirector, V1Builder, V2Builder, QueryBuilder }
+export { QueryDirector, V1Builder, V2Builder, QueryBuilder, Query }
