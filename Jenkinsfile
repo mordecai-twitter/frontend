@@ -27,9 +27,9 @@ node {
     }
   }
   stage('Deploy') {
-    sh "ssh-keyscan -H donprocopio.cs.unibo.it >> ~/.ssh/known_hosts"
+    sh "ssh-keyscan -H azucena.cs.unibo.it >> ~/.ssh/known_hosts"
     sh "yarn install --save"
     sh "yarn generate"
-    sh "scp -r dist/* andrea.zecca3@donprocopio.cs.unibo.it:/home/web/site202137/html"
+    sh "scp -r dist/* andrea.zecca3@azucena.cs.unibo.it:/home/web/site202137/html"
   }
 }
