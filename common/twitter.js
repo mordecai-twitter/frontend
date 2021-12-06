@@ -29,6 +29,7 @@ class twitter {
     this.sentimentUrl = 'sentiment'
     this.termCloudUrl = 'termcloud'
     this.contestUrl = 'contest'
+    this.triviaUrl = 'trivia'
   }
 
   /**
@@ -223,6 +224,10 @@ class twitter {
 
   async contest (query) {
     return await this.request(this.contestUrl, query)
+  }
+
+  async trivia (query) {
+    return await this.request(this.triviaUrl, query)
   }
 }
 
