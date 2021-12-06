@@ -187,6 +187,15 @@ class QueryDirector {
     }
     return builder.build()
   }
+
+  makeTriviaQuery (keyword) {
+    const builder = new V2Builder()
+    if (keyword && typeof keyword === 'string') {
+      builder.setExpansion('tweet.fields', 'author_id')
+      builder.setKeyword(keyword)
+    }
+    return builder.build()
+  }
 }
 
 export { QueryDirector, V1Builder, V2Builder, QueryBuilder, Query }
