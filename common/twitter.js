@@ -28,6 +28,7 @@ class twitter {
     // Custom urls
     this.sentimentUrl = 'sentiment'
     this.termCloudUrl = 'termcloud'
+    this.contestUrl = 'contest'
   }
 
   /**
@@ -218,6 +219,10 @@ class twitter {
   */
   async termcloud (query) {
     return await this.request(this.termCloudUrl, query)
+  }
+
+  async contest (query) {
+    return await this.request(this.contestUrl, query)
   }
 }
 

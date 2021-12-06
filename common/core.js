@@ -61,6 +61,7 @@ class Paginator {
       }
     } catch (err) {
       this.handleError(err)
+      return this.index
     }
     return this.index
   }
@@ -175,6 +176,7 @@ class Core {
 
   abortStream () {
     if (this.abortStreamCallback) {
+      console.log('aborting in core')
       this.abortStreamCallback()
       this.abortStreamCallback = null
     }
@@ -188,8 +190,7 @@ class Core {
   */
   async singleTweet (id) {
     try {
-      const response = await this.api.singleTweet(id)
-      return response
+      return await this.api.singleTweet(id)
     } catch (e) {
       return this.handleError(e)
     }

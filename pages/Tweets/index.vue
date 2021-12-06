@@ -47,23 +47,23 @@
           @click="search"
         >Search</c-button>
         <c-button
-          v-if="!this.isStreaming"
+          v-if="!isStreaming"
           id="streamButton"
           variant-color="black"
           type="button"
           value="Stream"
+          :isDisabled="!username && !keyword"
           @click="stream"
-          :isDisabled="!this.username && !this.keyword"
         >Stream</c-button>
         <c-button
-          v-if="this.isStreaming"
+          v-if="isStreaming"
           id="abortButton"
           variant-color="black"
           type="button"
           value="Abort"
           @click="abort"
         >Abort</c-button>
-        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" @mapClick="displayMapTweets" :geoEnable="geoEnable"/>
+        <Map :tweets="tweets" :circle-radius="geocode.radius * 1000" :geoEnable="geoEnable" @mapClick="displayMapTweets" />
         <c-slider v-model.number="geocode.radius" :min="1" :max="25" @onChangeEnd="displayMapTweets(undefined)">
           <c-slider-track />
           <c-slider-filled-track />
