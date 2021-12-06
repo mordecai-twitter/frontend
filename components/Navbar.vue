@@ -18,5 +18,8 @@
     <NuxtLink to="/contest">
       <c-heading size="md">Contest</c-heading>
     </NuxtLink>
+    <NuxtLink to="/trivia">
+      <c-heading size="md">Trivia</c-heading>
+    </NuxtLink>
   </c-flex>
 </template>
