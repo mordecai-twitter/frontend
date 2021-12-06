@@ -80,7 +80,7 @@ class Contest {
     const keyword = `#UniboSWE3 #Contest #${this.name}`
     const query = {}
     query.keywords = keyword
-    this.api.stream(query, (tweet) => {
+    core.stream(query, (tweet) => {
       tweet.author_id = tweet.user.id_str
       this.isStreaming = true
       const isVote = tweet.text.match(/#(v|V)ote/g)
@@ -95,6 +95,22 @@ class Contest {
     }, () => {
       this.isStreaming = false
     })
+    // OLD CODE
+    // this.api.stream(query, (tweet) => {
+    //   tweet.author_id = tweet.user.id_str
+    //   this.isStreaming = true
+    //   const isVote = tweet.text.match(/#(v|V)ote/g)
+    //   const isProposal = tweet.text.match(/#(p|P)roposal/g)
+    //   if (isVote) {
+    //     this.addVoter(tweet)
+    //   } else if (isProposal) {
+    //     this.addProposal(tweet)
+    //   }
+    //   console.log(this.voters)
+    //   callback(this.getVotes(), this.participants)
+    // }, () => {
+    //   this.isStreaming = false
+    // })
   }
 
   abort () {

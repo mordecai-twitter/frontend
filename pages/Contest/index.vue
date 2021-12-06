@@ -13,7 +13,9 @@
         <c-text>{{vote.name}}: {{vote.count}}</c-text>
         <c-button variant-color="black" @click="createVote(vote.name)">Vote</c-button>
       </c-box>
-      <VotesChart v-if="votes" v-bind:votes="votes" />
+      <c-box v-if="votes" h="600px">
+        <VotesChart v-bind:votes="votes" />
+      </c-box>
     </c-box>
   </c-box>
 </template>
@@ -51,12 +53,14 @@ export default {
     },
     createContest () {
       const contestName = this.contestName.replace(/ /g, '_')
-      this.composeTweet(`#UniboSWE3 #Contest #${contestName} #NewContest`, 'New Contest',
-        () => {
-          // TODO: ha senso subito dopo aver creato il contest, cercarlo? (Problema: Utente non inserisce nome contest)
-          // this.searchContest()
-        }
-      )
+      if (this.contestName !== '') {
+        this.composeTweet(`#UniboSWE3 #Contest #${contestName} #NewContest`, 'New Contest',
+          () => {
+            // TODO: ha senso subito dopo aver creato il contest, cercarlo? (Problema: Utente non inserisce nome contest)
+            // this.searchContest()
+          }
+        )
+      }
     },
     parseVotes (votes) {
       console.log(votes)
@@ -66,11 +70,11 @@ export default {
     },
     async searchContest () {
       if (this.contest) {
-        console.log('closing')
         this.contest.abort()
       }
-      if ((await Contest.searchContest(this.contestName)).length === 0) {
-        console.log('Contest not found')
+      if (this.contestName === '' || (await Contest.searchContest(this.contestName)).length === 0) {
+        // TODO: Inserire un modal che notifica l'utente
+        alert('Contest not found')
       } else {
         this.contest = new Contest(this.contestName)
         await this.contest.fetchProposals()
@@ -82,9 +86,11 @@ export default {
       }
     },
     createProposal () {
-      const contestName = this.contestName.replace(/ /g, '_')
-      const proposalName = this.proposalName.replace(/ /g, '_')
-      this.composeTweet(`#UniboSWE3 #Contest #${contestName} #Proposal #_${proposalName}`, 'New Proposal')
+      if (this.proposalName !== '') {
+        const contestName = this.contestName.replace(/ /g, '_')
+        const proposalName = this.proposalName.replace(/ /g, '_')
+        this.composeTweet(`#UniboSWE3 #Contest #${contestName} #Proposal #_${proposalName}`, 'New Proposal')
+      }
     },
     createVote (voteName) {
       const contestName = this.contestName.replace(/ /g, '_')
