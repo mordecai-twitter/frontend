@@ -176,7 +176,8 @@ class Core {
 
   abortStream () {
     if (this.abortStreamCallback) {
-      this.abortStreamCallbacks()
+      console.log('aborting in core')
+      this.abortStreamCallback()
       this.abortStreamCallback = null
     }
   }

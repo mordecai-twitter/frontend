@@ -9,7 +9,7 @@
       <c-heading>Contest: {{ this.contest.name }}</c-heading>
       <c-input variant="flushed" v-model="proposalName" placeholder="Proposal name"></c-input>
       <c-button variant-color="black" @click="createProposal()">Create proposal</c-button>
-      <c-box v-for="vote in votes" :key="vote">
+      <c-box v-for="vote in votes" :key="vote.name">
         <c-text>{{vote.name}}: {{vote.count}}</c-text>
         <c-button variant-color="black" @click="createVote(vote.name)">Vote</c-button>
       </c-box>
@@ -53,7 +53,8 @@ export default {
       const contestName = this.contestName.replace(/ /g, '_')
       this.composeTweet(`#UniboSWE3 #Contest #${contestName} #NewContest`, 'New Contest',
         () => {
-          this.searchContest()
+          // TODO: ha senso subito dopo aver creato il contest, cercarlo? (Problema: Utente non inserisce nome contest)
+          // this.searchContest()
         }
       )
     },
@@ -64,6 +65,10 @@ export default {
         .sort((a, b) => b.count - a.count)
     },
     async searchContest () {
+      if (this.contest) {
+        console.log('closing')
+        this.contest.abort()
+      }
       if ((await Contest.searchContest(this.contestName)).length === 0) {
         console.log('Contest not found')
       } else {

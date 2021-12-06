@@ -14,7 +14,6 @@ class Contest {
 
   getVotes () {
     const votes = {}
-    console.log(this.participants)
     for (const participant of Object.values(this.participants)) {
       votes[participant.getProposal()] = participant.getVotes()
     }
@@ -87,12 +86,11 @@ class Contest {
       const isVote = tweet.text.match(/#(v|V)ote/g)
       const isProposal = tweet.text.match(/#(p|P)roposal/g)
       if (isVote) {
-        console.log('Is vote')
         this.addVoter(tweet)
       } else if (isProposal) {
-        console.log('Is proposal')
         this.addProposal(tweet)
       }
+      console.log(this.voters)
       callback(this.getVotes(), this.participants)
     }, () => {
       this.isStreaming = false
@@ -107,8 +105,6 @@ class Contest {
   async init () {
     await this.fetchProposals()
     await this.fetchVotes()
-    console.log(this.participants)
-    console.log(this.voters)
   }
 }
 
@@ -133,12 +129,14 @@ class Voter extends User {
   }
 
   addVote (participant) {
-    if (this.votes.length >= 10) {
-      const removed = this.votes.pop()
-      removed.removeVote()
+    if (participant) {
+      if (this.votes.length >= 10) {
+        const removed = this.votes.pop()
+        removed.removeVote()
+      }
+      participant.addVote()
+      this.votes.unshift(participant)
     }
-    participant.addVote()
-    this.votes.unshift(participant)
   }
 }
 

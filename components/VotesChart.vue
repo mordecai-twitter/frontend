@@ -25,11 +25,12 @@ export default {
   methods: {
     displayGraph () {
       if (this.votes) {
-        console.log(this.votes)
-        console.log(
-          this.votes.reduce((res, vote) => ({
-            ...res, [vote.name]: vote.count
-          }), {}))
+        // TODO eliminare questo console log orrendo
+        // console.log(this.votes)
+        // console.log(
+        //   this.votes.reduce((res, vote) => ({
+        //     ...res, [vote.name]: vote.count
+        //   }), {}))
         this.renderChart(
           {
             labels: this.votes.map(vote => vote.name).slice(0, this.maxColumns),
