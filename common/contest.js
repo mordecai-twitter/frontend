@@ -91,7 +91,7 @@ class Contest {
         this.addProposal(tweet)
       }
       console.log(this.voters)
-      callback(this.getVotes(), this.participants)
+      callback(this.getVotes())
     }, () => {
       this.isStreaming = false
     })

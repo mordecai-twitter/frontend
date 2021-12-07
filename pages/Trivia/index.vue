@@ -5,18 +5,18 @@
       <c-button variant-color="black" type="button" name="button" @click="searchTrivia()">Search</c-button>
       <c-button variant-color="black" type="button" name="button" @click="createTrivia()">Create</c-button>
     </c-stack>
-    <c-box v-if="this.trivia">
+    <!-- <c-box v-if="this.trivia">
       <c-heading>Trivia: {{ this.trivia.name }}</c-heading>
-      <c-box v-if="isAuthor">
+      <c-box>
         <c-input variant="flushed" v-model="questionName" placeholder="Insert here the question name"></c-input>
         <c-input variant="flushed" v-model="questionText" placeholder="Insert here the question text"></c-input>
         <c-input variant="flushed" v-model="possibleAnswer" placeholder="Insert here possible answer"></c-input>
         <c-button variant-color="black" @click="insertPossibleAnswer()">Insert possible answer</c-button>
         <c-button variant-color="black" @click="createQuestion()">Create Question</c-button>
       </c-box>
-      <c-box v-else>
+      <c-box>
         <c-heading>Questions</c-heading>
-        <c-box v-for="question in questions" :key="question">
+        <c-box v-for="question in questions" :key="question.name">
           <c-heading as="h4" size="sm">{{ question.text }}</c-heading>
           <c-box v-for="(answer, index, a) in question.answers" :key="answer">
             <c-text>{{ index }} . {{ answer }} . {{ a }}</c-text>
@@ -24,12 +24,12 @@
           </c-box>
         </c-box>
       </c-box>
-    </c-box>
+    </c-box> -->
   </c-box>
 </template>
 
 <script>
-
+import { Trivia } from '../../common/trivia'
 export default {
   components: {
 
@@ -39,7 +39,7 @@ export default {
       triviaName: '',
       questionText: '',
       questionName: '',
-      trivia: {},
+      trivia: undefined,
       possibleAnswers: [],
       questions: [{
         text: 'what color is the sky?',
@@ -69,17 +69,33 @@ export default {
         }
       }, 500)
     },
-    searchTrivia () {
-      // TODO: Actually search trivia
-      this.trivia = {}
+    async searchTrivia () {
+      if (this.trivia) {
+        this.trivia.abort()
+      }
+      if (this.triviaName === '' || (await Trivia.checkTrivia(this.triviaName))) {
+        // TODO: Inserire un modal che notifica l'utente
+        alert('Contest not found')
+      } else {
+        this.trivia = new Trivia(this.triviaName)
+        await this.trivia.init()
+        console.log('Scores: ', this.trivia.getScores())
+        console.log('Questions: ', this.trivia.getQuestions())
+        console.log('Players: ', this.trivia.getPlayers())
+      }
     },
-    createTrivia () {
-      // TODO: Check if trivia exists
-      const triviaName = this.triviaName.replace(/\s/g, '_')
-      this.composeTweet(`#UniboSWE3 #TriviaGame #New #${triviaName}`, 'New Trivia', () => {
-        // TODO: Check if trivia was created
-        this.trivia = {}
-      })
+    async createTrivia () {
+      if (this.trivia) {
+        this.trivia.abort()
+      }
+      if (this.triviaName === '' || !(await Trivia.checkTrivia(this.triviaName))) {
+        // TODO: Inserire un modal che notifica l'utente
+        alert('Trivia not found')
+      } else {
+        const triviaName = this.triviaName.replace(/\s/g, '_')
+        this.composeTweet(`#UniboSWE3 #TriviaGame #New #${triviaName}`, 'New Trivia', async () => {
+        })
+      }
     },
     insertPossibleAnswer () {
       this.possibleAnswers.push(this.possibleAnswer)

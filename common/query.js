@@ -191,7 +191,7 @@ class QueryDirector {
   makeTriviaQuery (keyword) {
     const builder = new V2Builder()
     if (keyword && typeof keyword === 'string') {
-      builder.setExpansion('tweet.fields', 'author_id')
+      builder.setExpansion('tweet.fields', 'author_id,created_at')
       builder.setKeyword(keyword)
     }
     return builder.build()
