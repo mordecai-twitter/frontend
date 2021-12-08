@@ -139,10 +139,13 @@ export default {
         this.loading = true
         await this.trivia.init()
         this.loading = false
+        console.log(this.trivia.getQuestions())
         this.questions = this.parseQuestions(this.trivia.getQuestions())
+        console.log(this.questions)
         this.scores = await this.trivia.getScores()
         this.trivia.live((scores, questions, _) => {
           this.questions = this.parseQuestions(questions)
+          console.log('Live: ', this.questions)
           this.scores = scores
         })
       }

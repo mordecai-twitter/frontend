@@ -159,7 +159,9 @@ class Trivia {
 
     for (const player of Object.values(this.players)) {
       if (questionName in player.getAnswer()) {
-        const chosenNumber = player.getAnswer()[questionName].option
+        console.log(player.getAnswer(), questionName)
+        const chosenNumber = player.getAnswer()[questionName].option - 1
+        console.log(options[chosenNumber])
         results[options[chosenNumber]] += 1
       }
     }
