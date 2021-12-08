@@ -31,11 +31,15 @@
         <c-spinner v-if="loading" />
         <c-box v-else v-for="question in questions" :key="question.name">
           <c-heading as="h4" size="sm">{{ question.text || "** question text **" }}</c-heading>
-          <c-box v-for="(answer, index, a) in question.answers" :key="answer">
-            <c-text>{{ index + 1 }}. {{ answer }} {{ a }}</c-text>
+          <c-box v-for="(option, index, a) in Object.keys(question.answers)" :key="option">
+            <c-text>{{ index + 1 }}. {{ option }} {{ a }}</c-text>
             <c-button variant-color="blue" @click="sendAnswer(index, question.name)">Choose Answer</c-button>
           </c-box>
+          <AnswerChart :answers="question.answers" />
         </c-box>
+      </c-box>
+      <c-box>
+        <c-heading>Stats</c-heading>
       </c-box>
       <c-box>
         <c-heading>Leaderboard</c-heading>
@@ -106,7 +110,7 @@ export default {
         {
           text: q.getText(),
           name: q.getName().substring(2).replace('_', ' '),
-          answers: q.getOptions()
+          answers: this.trivia.getQuestionResults(q.getName())
         }
       ))
     },

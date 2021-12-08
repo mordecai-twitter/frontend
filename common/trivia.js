@@ -150,6 +150,23 @@ class Trivia {
     return results
   }
 
+  getQuestionResults (questionName) {
+    const results = {}
+    const options = this.questions[questionName].getOptions()
+    for (const option of options) {
+      results[option] = 0
+    }
+
+    for (const player of Object.values(this.players)) {
+      if (questionName in player.getAnswer()) {
+        const chosenNumber = player.getAnswer()[questionName].option
+        results[options[chosenNumber]] += 1
+      }
+    }
+
+    return results
+  }
+
   abort () {
     this.isStreaming = false
     core.abortStream()
