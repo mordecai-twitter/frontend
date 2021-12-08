@@ -37,6 +37,12 @@
           </c-box>
         </c-box>
       </c-box>
+      <c-box>
+        <c-heading>Leaderboard</c-heading>
+        <c-box v-for="([username, score], index) in leaderboard" :key="index">
+          <c-text>{{ index + 1 }}. {{ username }} {{ score }}</c-text>
+        </c-box>
+      </c-box>
     </c-box>
   </c-box>
 </template>
@@ -46,6 +52,17 @@ import { Trivia } from '../../common/trivia'
 export default {
   components: {
 
+  },
+  computed: {
+    leaderboard () {
+      return Object.entries(this.scores)
+        .map(([id, score]) => {
+          return [this.trivia.getPlayers()[id].getUsername(), score]
+        })
+        .sort((a, b) => {
+          return b[1] - a[1]
+        })
+    }
   },
   data () {
     return {
@@ -60,7 +77,9 @@ export default {
       isCreating: false,
       loading: false,
       message: '',
-      messageType: '' // info, success, warning, error
+      messageType: '', // info, success, warning, error
+      scoreSearchUsername: '',
+      scores: {}
     }
   },
   methods: {
@@ -81,6 +100,15 @@ export default {
         }
       }, 500)
     },
+    parseQuestions (questions) {
+      return Object.values(questions).map(q => (
+        {
+          text: q.getText(),
+          name: q.getName().substring(2).replace('_', ' '),
+          answers: q.getOptions()
+        }
+      ))
+    },
     async searchTrivia () {
       if (this.trivia) {
         this.trivia.abort()
@@ -94,26 +122,26 @@ export default {
         this.loading = true
         await this.trivia.init()
         this.loading = false
-        this.questions = Object.values(this.trivia.getQuestions()).map(q => (
-          {
-            text: q.getText(),
-            name: q.getName(),
-            answers: q.getOptions()
-          }
-        ))
-        this.trivia.live((score, questions, players) => console.log(score, questions, players))
+        this.questions = this.parseQuestions(this.trivia.getQuestions())
+        this.scores = await this.trivia.getScores()
+        this.trivia.live((scores, questions, _) => {
+          this.questions = this.parseQuestions(questions)
+          this.scores = scores
+        })
       }
     },
     async createTrivia () {
       if (this.trivia) {
         this.trivia.abort()
       }
-      if (this.triviaName === '' || !(await Trivia.checkTrivia(this.triviaName))) {
-        // TODO: Inserire un modal che notifica l'utente
-        alert('Trivia not found')
+      if (this.triviaName === '') {
+        this.notifyUser('Please insert a trivia name', 'warning')
+      } else if (!(await Trivia.checkTrivia(this.triviaName))) {
+        this.notifyUser('Trivia already exists', 'error')
       } else {
         const triviaName = this.triviaName.replace(/\s/g, '_')
-        this.composeTweet(`#UniboSWE3 #TriviaGame #New #${triviaName}`, 'New Trivia', async () => {
+        this.composeTweet(`#UniboSWE3 #TriviaGame #New #${triviaName}`, 'New Trivia', () => {
+          this.searchTrivia()
         })
       }
     },
@@ -145,7 +173,7 @@ export default {
     },
     sendAnswer (answerNumber, questionName) {
       const triviaName = this.triviaName.replace(/\s/g, '_')
-      this.composeTweet(`#UniboSWE3 #TriviaGame ${triviaName} #Answer #A${questionName} #${answerNumber}`)
+      this.composeTweet(`#UniboSWE3 #TriviaGame #${triviaName} #Answer #_${questionName} #A_${answerNumber + 1}`)
     }
   }
 }

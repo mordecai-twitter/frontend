@@ -46,16 +46,22 @@ class Trivia {
     // Proposal loading
     const answers = res.data.reverse()
     for (const answer of answers) {
-      this.addPlayer(answer)
+      try {
+        await this.addPlayer(answer)
+      } catch {
+        console.log('Error while parsing answer, skipping.')
+      }
     }
   }
 
-  addPlayer (player) {
+  async addPlayer (player) {
     const answer = player.text.match(/#A_[1-4]\w*/g)[0].replace(/#A_/g, '')
     const questionName = player.text.match(/#_\w+/g)[0]
     if (Object.keys(this.questions).includes(questionName) && this.questions[questionName].checkDeadline(player.created_at)) {
       if (!this.players[player.author_id]) {
-        this.players[player.author_id] = new Player(player.author_id)
+        const playerObject = new Player(player.author_id)
+        await playerObject.fetchUsername()
+        this.players[player.author_id] = playerObject
       }
       this.players[player.author_id].addAnswer(questionName, answer, player.created_at)
     }
@@ -120,7 +126,7 @@ class Trivia {
         await this.addQuestion(tweet)
       } else if (isAnswer) {
         console.log('New Answer ', tweet)
-        this.addPlayer(tweet)
+        await this.addPlayer(tweet)
       } else if (isSolution && tweet.author_id === this.creator) {
         console.log('New Solution ', tweet)
         const question = tweet.text.match(/#_\w+/g)[0]
@@ -176,7 +182,7 @@ class Question {
     // Nel caso vengano postate piu' soluzioni prendiamo l'ultima postata
     if (res.data.length > 0) {
       const text = res.data[0].text
-      // Set the solution to the firtst option hasthag
+      // Set the solution to the first option hasthag
       this.setSolution(text.match(/#(S|s)_[1-4]\w*/g)[0], res.data[0].created_at)
     }
   }
@@ -230,6 +236,16 @@ class Player {
     this.id = id
     // Stores the player answers { 'question name': { 'selected option' }
     this.answers = {}
+    // The username is loaded in a second moment
+    this.username = undefined
+  }
+
+  async fetchUsername () {
+    this.username = (await new Twitter().userById(this.id, {})).data.username
+  }
+
+  getUsername () {
+    return this.username
   }
 
   getAnswer () {
