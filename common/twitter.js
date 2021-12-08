@@ -140,7 +140,11 @@ class twitter {
                   const decodedTweet = JSON.parse(buffer.substring(0, i + 1))
                   buffer = buffer.substring(i + 1)
                   i = -1
-                  callback(decodedTweet)
+                  if (!decodedTweet.type || decodedTweet.type !== 'keep-alive') {
+                    callback(decodedTweet)
+                  } else {
+                    console.log('keep-alive')
+                  }
                 }
               }
             }
