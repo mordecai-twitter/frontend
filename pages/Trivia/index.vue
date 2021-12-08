@@ -39,7 +39,8 @@
       </c-box>
       <c-box>
         <c-heading>Leaderboard</c-heading>
-        <c-box v-for="([username, score], index) in leaderboard" :key="index">
+        <c-input variant="flushed" v-model="leaderboardFilter" placeholder="Filter by username"></c-input>
+        <c-box v-for="([index, username, score]) in getFilteredLeaderboard(leaderboardFilter)" :key="index">
           <c-text>{{ index + 1 }}. {{ username }} {{ score }}</c-text>
         </c-box>
       </c-box>
@@ -78,7 +79,7 @@ export default {
       loading: false,
       message: '',
       messageType: '', // info, success, warning, error
-      scoreSearchUsername: '',
+      leaderboardFilter: '',
       scores: {}
     }
   },
@@ -174,6 +175,18 @@ export default {
     sendAnswer (answerNumber, questionName) {
       const triviaName = this.triviaName.replace(/\s/g, '_')
       this.composeTweet(`#UniboSWE3 #TriviaGame #${triviaName} #Answer #_${questionName} #A_${answerNumber + 1}`)
+    },
+    getFilteredLeaderboard (filter) {
+      const filteredLeaderboard = []
+
+      for (const i in this.leaderboard) {
+        const [username, score] = this.leaderboard[i]
+        if (username.toLowerCase().includes(filter.toLowerCase())) {
+          filteredLeaderboard.push([parseInt(i), username, score])
+        }
+      }
+
+      return filteredLeaderboard
     }
   }
 }
