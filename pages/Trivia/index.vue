@@ -1,11 +1,33 @@
 <template>
   <c-box id="wrapper" m="2em" mt="4em">
+    <c-stack color="black">
+      <c-alert v-if="this.messageType == 'info'" status="info">
+        <c-alert-icon />
+        {{ this.message }}
+        <c-close-button position="absolute" right="8px" top="8px" @click="() => {this.messageType = ''}"/>
+      </c-alert>
+      <c-alert v-if="this.messageType == 'success'" status="success">
+        <c-alert-icon />
+        {{ this.message }}
+        <c-close-button position="absolute" right="8px" top="8px" @click="() => {this.messageType = ''}"/>
+      </c-alert>
+      <c-alert v-if="this.messageType == 'warning'" status="warning">
+        <c-alert-icon />
+        {{ this.message }}
+        <c-close-button position="absolute" right="8px" top="8px" @click="() => {this.messageType = ''}"/>
+      </c-alert>
+      <c-alert v-if="this.messageType == 'error'" status="error">
+        <c-alert-icon />
+        {{ this.message }}
+        <c-close-button position="absolute" right="8px" top="8px" @click="() => {this.messageType = ''}"/>
+      </c-alert>
+    </c-stack>
     <c-input variant="flushed" v-model="triviaName" type="text" placeholder="Insert here your trivia name" />
     <c-stack :spacing="5" is-inline align="center" justify="center">
       <c-button variant-color="black" type="button" name="button" @click="searchTrivia()">Search</c-button>
       <c-button variant-color="black" type="button" name="button" @click="createTrivia()">Create</c-button>
     </c-stack>
-    <!-- <c-box v-if="this.trivia">
+    <c-box v-if="this.trivia">
       <c-heading>Trivia: {{ this.trivia.name }}</c-heading>
       <c-box>
         <c-input variant="flushed" v-model="questionName" placeholder="Insert here the question name"></c-input>
@@ -13,18 +35,24 @@
         <c-input variant="flushed" v-model="possibleAnswer" placeholder="Insert here possible answer"></c-input>
         <c-button variant-color="black" @click="insertPossibleAnswer()">Insert possible answer</c-button>
         <c-button variant-color="black" @click="createQuestion()">Create Question</c-button>
+
+        <c-heading size="sm" v-if="possibleAnswers.length > 0">Inserted options:</c-heading>
+        <c-box v-for="(answer, index, a) in possibleAnswers" :key="answer">
+          <c-text>{{ index + 1 }}. {{ answer }} {{ a }}</c-text>
+        </c-box>
       </c-box>
       <c-box>
         <c-heading>Questions</c-heading>
-        <c-box v-for="question in questions" :key="question.name">
-          <c-heading as="h4" size="sm">{{ question.text }}</c-heading>
+        <c-spinner v-if="loading" />
+        <c-box v-else v-for="question in questions" :key="question.name">
+          <c-heading as="h4" size="sm">{{ question.text || "** question text **" }}</c-heading>
           <c-box v-for="(answer, index, a) in question.answers" :key="answer">
-            <c-text>{{ index }} . {{ answer }} . {{ a }}</c-text>
+            <c-text>{{ index + 1 }}. {{ answer }} {{ a }}</c-text>
             <c-button variant-color="blue" @click="sendAnswer(index, question.name)">Choose Answer</c-button>
           </c-box>
         </c-box>
       </c-box>
-    </c-box> -->
+    </c-box>
   </c-box>
 </template>
 
@@ -41,21 +69,20 @@ export default {
       questionName: '',
       trivia: undefined,
       possibleAnswers: [],
-      questions: [{
-        text: 'what color is the sky?',
-        name: 'sky',
-        answers: ['blue', 'red', 'green', 'yellow']
-      },
-      {
-        text: 'what color is your mom?',
-        name: 'mom',
-        answers: ['blue', 'red', 'green', 'yellow']
-      }],
+      possibleAnswer: '',
+      questions: [],
       isAuthor: false,
-      isCreating: false
+      isCreating: false,
+      loading: false,
+      message: '',
+      messageType: '' // info, success, warning, error
     }
   },
   methods: {
+    notifyUser (message, type) {
+      this.message = message
+      this.messageType = type
+    },
     composeTweet (tweet, title, onClosed) {
       this.dialogClosed = false
       const win = window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweet), title, 'width=600,height=400')
@@ -73,15 +100,22 @@ export default {
       if (this.trivia) {
         this.trivia.abort()
       }
-      if (this.triviaName === '' || (await Trivia.checkTrivia(this.triviaName))) {
-        if (this.triviaName !== '') {
-          alert('Contest not found')
-        } else {
-          alert('Insert the contest name')
-        }
+      if (this.triviaName === '') {
+        this.notifyUser('Please insert a trivia name', 'warning')
+      } else if (await Trivia.checkTrivia(this.triviaName)) {
+        this.notifyUser('Trivia not found', 'error')
       } else {
         this.trivia = new Trivia(this.triviaName)
+        this.loading = true
         await this.trivia.init()
+        this.loading = false
+        this.questions = Object.values(this.trivia.getQuestions()).map(q => (
+          {
+            text: q.getText(),
+            name: q.getName(),
+            answers: q.getOptions()
+          }
+        ))
         this.trivia.live((score, questions, players) => console.log(score, questions, players))
       }
     },
@@ -101,6 +135,28 @@ export default {
     insertPossibleAnswer () {
       this.possibleAnswers.push(this.possibleAnswer)
       this.possibleAnswer = ''
+    },
+    createQuestion () {
+      if (this.questionName === '') {
+        this.notifyUser('Please insert a question name', 'warning')
+      } else if (this.questionText === '') {
+        this.notifyUser('Please insert a question text', 'warning')
+      } else if (this.possibleAnswers.length === 0) {
+        this.notifyUser('Please insert at least one possible answer', 'warning')
+      } else {
+        const triviaName = this.triviaName.replace(/\s/g, '_')
+        const questionName = this.questionName.replace(/\s/g, '_')
+        const possibleAnswers = []
+        for (const i in this.possibleAnswers) {
+          possibleAnswers.push(`#${parseInt(i) + 1}_` + this.possibleAnswers[i].replace(/\s/g, '_'))
+        }
+        this.composeTweet(`${this.questionText} #UniboSWE3 #TriviaGame #${triviaName} #Question #_${questionName} ${possibleAnswers.join(' ')} `, 'New Question', () => {
+          // this.trivia.createQuestion(this.questionName, this.questionText, this.possibleAnswers)
+          this.possibleAnswers = []
+          this.questionName = ''
+          this.questionText = ''
+        })
+      }
     },
     sendAnswer (answerNumber, questionName) {
       const triviaName = this.triviaName.replace(/\s/g, '_')

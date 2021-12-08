@@ -75,8 +75,11 @@ class Trivia {
       // Parse options removing the hastag and the number
       // #1_oxygen -> oxygen
       const options = question.text.match(/#([1-4]_)\w+/g).map(op => op.replace(/#[1-4]_/, ''))
+
+      const questionText = question.text.replace(/#[A-Za-z_0-9]*/g, '').trim()
+
       if (!this.questions[questionName]) {
-        this.questions[questionName] = new Question(this.name, questionName, options)
+        this.questions[questionName] = new Question(this.name, questionName, questionText, options)
         // Search an existing solution
         await this.questions[questionName].searchSolution(this.creator)
       }
@@ -150,11 +153,12 @@ class Trivia {
 class Question {
   // #UniboSWE3 #TriviaGame #[trivia name] #Question #_[question name] #1_[option1]
   // #2_[option2] #3_[option3] #4_[option4]
-  constructor (trivia, name, options) {
+  constructor (trivia, name, text, options) {
     // Solution is the option number
     this.solution = undefined
     this.options = options
     this.name = name
+    this.text = text
     this.trivia = trivia
     this.api = new Twitter()
   }
@@ -214,6 +218,10 @@ class Question {
 
   getName () {
     return this.name
+  }
+
+  getText () {
+    return this.text
   }
 }
 
