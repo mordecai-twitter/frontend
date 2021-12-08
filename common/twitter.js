@@ -29,6 +29,7 @@ class twitter {
     this.sentimentUrl = 'sentiment'
     this.termCloudUrl = 'termcloud'
     this.contestUrl = 'contest'
+    this.triviaUrl = 'trivia'
   }
 
   /**
@@ -139,7 +140,11 @@ class twitter {
                   const decodedTweet = JSON.parse(buffer.substring(0, i + 1))
                   buffer = buffer.substring(i + 1)
                   i = -1
-                  callback(decodedTweet)
+                  if (!decodedTweet.type || decodedTweet.type !== 'keep-alive') {
+                    callback(decodedTweet)
+                  } else {
+                    console.log('keep-alive')
+                  }
                 }
               }
             }
@@ -223,6 +228,10 @@ class twitter {
 
   async contest (query) {
     return await this.request(this.contestUrl, query)
+  }
+
+  async trivia (query) {
+    return await this.request(this.triviaUrl, query)
   }
 }
 
