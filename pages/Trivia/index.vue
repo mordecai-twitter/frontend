@@ -24,6 +24,7 @@
         <c-heading size="sm" v-if="possibleAnswers.length > 0">Inserted options:</c-heading>
         <c-box v-for="(answer, index, a) in possibleAnswers" :key="answer">
           <c-text>{{ index + 1 }}. {{ answer }} {{ a }}</c-text>
+          <c-button variant-color="black" @click="deleteOption(index)">Delete Option</c-button>
         </c-box>
       </c-box>
       <c-box>
@@ -33,13 +34,13 @@
           <c-heading as="h4" size="sm">{{ question.text || "** question text **" }}</c-heading>
           <c-box v-for="(option, index, a) in Object.keys(question.answers)" :key="option">
             <c-text>{{ index + 1 }}. {{ option }} {{ a }}</c-text>
-            <c-button variant-color="blue" @click="sendAnswer(index, question.name)">Choose Answer</c-button>
+            <c-box v-if="question.solution === undefined">
+              <c-button variant-color="blue" @click="sendAnswer(index, question.name)">Choose Answer</c-button>
+              <c-button variant-color="green" @click="sendSolution(index, question.name)">Mark as Correct</c-button>
+            </c-box>
           </c-box>
           <AnswerChart :answers="question.answers" />
         </c-box>
-      </c-box>
-      <c-box>
-        <c-heading>Stats</c-heading>
       </c-box>
       <c-box>
         <c-heading>Leaderboard</c-heading>
@@ -110,11 +111,22 @@ export default {
         {
           text: q.getText(),
           name: q.getName().substring(2).replace('_', ' '),
-          answers: this.trivia.getQuestionResults(q.getName())
+          answers: this.trivia.getQuestionResults(q.getName()),
+          solution: q.solution
         }
       ))
     },
     async searchTrivia () {
+      // Reset all values to default
+      this.trivia = undefined
+      this.possibleAnswers = []
+      this.questions = []
+      this.isAuthor = false
+      this.isCreating = false
+      this.loading = true
+      this.leaderboardFilter = ''
+      this.scores = {}
+
       if (this.trivia) {
         this.trivia.abort()
       }
@@ -154,6 +166,9 @@ export default {
       this.possibleAnswers.push(this.possibleAnswer)
       this.possibleAnswer = ''
     },
+    deleteOption (index) {
+      this.possibleAnswers.splice(index, 1)
+    },
     createQuestion () {
       if (this.questionName === '') {
         this.notifyUser('Please insert a question name', 'warning')
@@ -179,6 +194,10 @@ export default {
     sendAnswer (answerNumber, questionName) {
       const triviaName = this.triviaName.replace(/\s/g, '_')
       this.composeTweet(`#UniboSWE3 #TriviaGame #${triviaName} #Answer #_${questionName} #A_${answerNumber + 1}`)
+    },
+    sendSolution (answerNumber, questionName) {
+      const triviaName = this.triviaName.replace(/\s/g, '_')
+      this.composeTweet(`#UniboSWE3 #TriviaGame #${triviaName} #Solution #_${questionName} #S_${answerNumber + 1}`)
     },
     getFilteredLeaderboard (filter) {
       const filteredLeaderboard = []
