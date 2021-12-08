@@ -1,22 +1,7 @@
 <template>
   <c-box id="wrapper" m="2em" mt="4em">
     <c-stack color="black">
-      <c-alert v-if="this.messageType == 'info'" status="info">
-        <c-alert-icon />
-        {{ this.message }}
-        <c-close-button position="absolute" right="8px" top="8px" @click="() => {this.messageType = ''}"/>
-      </c-alert>
-      <c-alert v-if="this.messageType == 'success'" status="success">
-        <c-alert-icon />
-        {{ this.message }}
-        <c-close-button position="absolute" right="8px" top="8px" @click="() => {this.messageType = ''}"/>
-      </c-alert>
-      <c-alert v-if="this.messageType == 'warning'" status="warning">
-        <c-alert-icon />
-        {{ this.message }}
-        <c-close-button position="absolute" right="8px" top="8px" @click="() => {this.messageType = ''}"/>
-      </c-alert>
-      <c-alert v-if="this.messageType == 'error'" status="error">
+      <c-alert v-if="this.messageType" :status="this.messageType">
         <c-alert-icon />
         {{ this.message }}
         <c-close-button position="absolute" right="8px" top="8px" @click="() => {this.messageType = ''}"/>
