@@ -56,7 +56,7 @@ class Trivia {
 
   async addPlayer (player) {
     const answer = player.text.match(/#A_[1-4]\w*/g)[0].replace(/#A_/g, '')
-    const questionName = player.text.match(/#_\w+/g)[0]
+    const questionName = player.text.match(/#_[\w_0-9]+/g)[0]
     if (Object.keys(this.questions).includes(questionName) && this.questions[questionName].checkDeadline(player.created_at)) {
       if (!this.players[player.author_id]) {
         const playerObject = new Player(player.author_id)
@@ -77,7 +77,7 @@ class Trivia {
       this.creator = res.data[res.data.length - 1].author_id
     }
     if (this.creator === question.author_id) {
-      const questionName = question.text.match(/#_[A-Za-z_]*/g)[0]
+      const questionName = question.text.match(/#_[A-Za-z_0-9]*/g)[0]
       // Parse options removing the hastag and the number
       // #1_oxygen -> oxygen
       const options = question.text.match(/#([1-4]_)\w+/g).map(op => op.replace(/#[1-4]_/, ''))
@@ -129,7 +129,7 @@ class Trivia {
         await this.addPlayer(tweet)
       } else if (isSolution && tweet.author_id === this.creator) {
         console.log('New Solution ', tweet)
-        const question = tweet.text.match(/#_\w+/g)[0]
+        const question = tweet.text.match(/#_[\w_0-9]+/g)[0]
         const solution = tweet.text.match(/#(S|s)_[1-4]/g)[0]
         this.questions[question].setSolution(solution, tweet.created_at)
       }
