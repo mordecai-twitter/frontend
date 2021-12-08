@@ -33,7 +33,7 @@ class Trivia {
     const res = await this.api.trivia(query)
     const questions = res.data
     for (const question of questions) {
-      this.addQuestion(question)
+      await this.addQuestion(question)
     }
   }
 
@@ -52,9 +52,8 @@ class Trivia {
 
   addPlayer (player) {
     const answer = player.text.match(/#A_[1-4]\w*/g)[0].replace(/#A_/g, '')
-    console.log('Answer: ', answer)
     const questionName = player.text.match(/#_\w+/g)[0]
-    if (Object.keys(this.questions).includes(questionName)) {
+    if (Object.keys(this.questions).includes(questionName) && this.questions[questionName].checkDeadline(player.created_at)) {
       if (!this.players[player.author_id]) {
         this.players[player.author_id] = new Player(player.author_id)
       }
@@ -79,7 +78,7 @@ class Trivia {
       if (!this.questions[questionName]) {
         this.questions[questionName] = new Question(this.name, questionName, options)
         // Search an existing solution
-        await this.questions[questionName].searchSolution()
+        await this.questions[questionName].searchSolution(this.creator)
       }
     }
   }
@@ -103,25 +102,29 @@ class Trivia {
   *
   */
   live (callback) {
+    console.log('In live')
     const keyword = `#UniboSWE3 #TriviaGame #${this.name}`
     const query = {}
     query.keywords = keyword
-    core.stream(query, (tweet) => {
+    core.stream(query, async (tweet) => {
       tweet.author_id = tweet.user.id_str
       this.isStreaming = true
       const isNewQuestion = tweet.text.match(/#(Q|q)uestion/g)
       const isAnswer = tweet.text.match(/#(A|a)nswer/g)
       const isSolution = tweet.text.match(/#(S|s)olution/g)
       if (isNewQuestion) {
-        this.addQuestion(tweet)
+        console.log('New Question ', tweet)
+        await this.addQuestion(tweet)
       } else if (isAnswer) {
+        console.log('New Answer ', tweet)
         this.addPlayer(tweet)
-      } else if (isSolution) {
-        const question = tweet.text.match(/#_w+/g)[0]
-        const solution = tweet.match(/#(S|s)_[1-4]/g)[0]
+      } else if (isSolution && tweet.author_id === this.creator) {
+        console.log('New Solution ', tweet)
+        const question = tweet.text.match(/#_\w+/g)[0]
+        const solution = tweet.text.match(/#(S|s)_[1-4]/g)[0]
         this.questions[question].setSolution(solution, tweet.created_at)
       }
-      callback(this.getScores())
+      callback(this.getScores(), this.getQuestions(), this.getPlayers())
     }, () => {
       this.isStreaming = false
     })
@@ -159,10 +162,10 @@ class Question {
   /**
   * @summary Check if a solution exists
   */
-  async searchSolution () {
+  async searchSolution (authorId) {
     // #UniboSWE3 #TriviaGame #[trivia name] #Solution #_[question name] #[option number]
     // TODO: The solution must be given by the creator
-    const keyword = `#UniboSWE3 #TriviaGame #${this.trivia} ${this.name} #Solution`
+    const keyword = `#UniboSWE3 #TriviaGame #${this.trivia} ${this.name} #Solution from:${authorId}`
     const director = new QueryDirector(new V2Builder())
     const query = director.makeTriviaQuery(keyword).get()
     const res = await this.api.trivia(query)
@@ -182,16 +185,23 @@ class Question {
   setSolution (solution, deadline) {
     // TODO: Sistemare l'option parsing, samuele ha detto che non si tweeta direttamente con #numero CREDO FATTO
     this.solution = { solution: solution.replace(/#(S|s)_/, ''), deadline }
-    console.log('After set solution: ', this.solution)
   }
 
   checkSolution (answer, time) {
-    console.log(answer, time, this.solution)
-    return (this.solution && answer === this.getSolution() && this.getDeadline() > time) ? 1 : 0
+    return (this.solution && answer === this.getSolution() && this.checkDeadline(time)) ? 1 : 0
+  }
+
+  checkDeadline (answerTime) {
+    const deadline = this.getDeadline()
+    if (deadline) {
+      return deadline > answerTime
+    } else {
+      return true
+    }
   }
 
   getDeadline () {
-    return this.solution.deadline
+    return this.solution ? this.solution.deadline : undefined
   }
 
   getSolution () {

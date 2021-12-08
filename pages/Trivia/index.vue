@@ -74,14 +74,15 @@ export default {
         this.trivia.abort()
       }
       if (this.triviaName === '' || (await Trivia.checkTrivia(this.triviaName))) {
-        // TODO: Inserire un modal che notifica l'utente
-        alert('Contest not found')
+        if (this.triviaName !== '') {
+          alert('Contest not found')
+        } else {
+          alert('Insert the contest name')
+        }
       } else {
         this.trivia = new Trivia(this.triviaName)
         await this.trivia.init()
-        console.log('Scores: ', this.trivia.getScores())
-        console.log('Questions: ', this.trivia.getQuestions())
-        console.log('Players: ', this.trivia.getPlayers())
+        this.trivia.live((score, questions, players) => console.log(score, questions, players))
       }
     },
     async createTrivia () {
