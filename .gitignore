@@ -91,3 +91,6 @@ sw.*
 
 # Logger Stuffs
 .innometrics.db
+
+# Jest Stuffs
+test-report.xml

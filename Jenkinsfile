@@ -2,28 +2,31 @@ node {
   stage('SCM') {
     checkout scm
   }
-
-  stage('SonarQube Analysis') {
-    def scannerHome = tool 'SonarQubeMordecai';
-    withSonarQubeEnv() {
-      sh "${scannerHome}/bin/sonar-scanner"
-    }
-  }
   stage('Test') {
     try {
       sh "npm install --save"
     } catch (err) {
-        echo "Failed: ${err}"
+      echo "Failed: ${err}"
     }
     try {
-      sh "yarn install"
+      sh "yarn install --save"
     } catch (err) {
         echo "Failed: ${err}"
     }
     try {
       sh "npm test"
-    }   catch (err) {
+    } catch (err) {
         echo "Failed: ${err}"
+    }
+  }
+  stage('SonarQube Analysis') {
+    try {
+      def scannerHome = tool 'SonarQubeMordecai';
+      withSonarQubeEnv() {
+        sh "${scannerHome}/bin/sonar-scanner"
+      }
+    } catch (err) {
+      echo "Failed: ${err}"
     }
   }
   stage('Deploy') {

@@ -21,5 +21,10 @@ module.exports = {
     '<rootDir>/common/**/*.js'
 
   ],
-  testEnvironment: 'jsdom'
+  testEnvironment: 'jsdom',
+  testResultsProcessor: 'jest-sonar-reporter',
+  coverageDirectory: 'coverage',
+  coveragePathIgnorePatterns: [
+    '/node_modules/'
+  ]
 }
