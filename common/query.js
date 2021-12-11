@@ -93,6 +93,13 @@ class QueryBuilder {
   * @return The query object created
   */
   build () { return this.query }
+
+  /**
+  * Set an expansion to Query
+  * @function
+  * @return This
+  */
+  setExpansion (expansion, value) { return this }
 }
 
 /**
@@ -116,6 +123,11 @@ class V1Builder extends QueryBuilder {
     this.query.addField('user_id', username)
     return this
   }
+
+  setExpansion (expansion, value) {
+    this.query.addField(expansion, value)
+    return this
+  }
 }
 
 /**
@@ -136,8 +148,6 @@ class V2Builder extends QueryBuilder {
   }
 
   setGeocode (geocode) {
-    this.setExpansion('user.fields', 'username')
-    this.setExpansion('tweet.fields', 'author_id,geo')
     this.query.appendString('query', ' ', 'point_radius', ':', `[${geocode.longitude} ${geocode.latitude} ${geocode.radius}km] has:geo`)
     return this
   }
@@ -167,6 +177,9 @@ class QueryDirector {
   }
 
   makeSearchQuery (keyword, username, geocode) {
+    this.builder.setExpansion('max_results', '30')
+    this.builder.setExpansion('user.fields', 'username')
+    this.builder.setExpansion('tweet.fields', 'author_id,geo')
     if (keyword && typeof keyword === 'string') {
       this.builder.setKeyword(keyword)
     }

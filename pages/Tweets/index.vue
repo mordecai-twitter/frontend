@@ -11,31 +11,40 @@
       >
         <c-box>
           <h3>Filters:</h3>
-          <c-input
-            id="textInput"
-            v-model="username"
-            pl="1em"
-            variant="flushed"
-            bg="#16202c"
-            type="text"
-            placeholder="Insert username here..."
-            ml="1em"
-            w="97%"
-          />
-          <c-input
-            id="textInput"
-            v-model="keyword"
-            pl="1em"
-            variant="flushed"
-            bg="#16202c"
-            type="text"
-            placeholder="Insert keyword here..."
-            ml="1em"
-            w="97%"
-          />
+          <CTagLabel>
+            Username
+            <c-input
+              id="textInput"
+              v-model="username"
+              pl="1em"
+              variant="flushed"
+              bg="#16202c"
+              type="text"
+              placeholder="Insert username here..."
+              ml="1em"
+              w="97%"
+            />
+          </CTagLabel>
+          <CTagLabel>
+            Keyword
+            <c-input
+              id="textInput"
+              v-model="keyword"
+              pl="1em"
+              variant="flushed"
+              bg="#16202c"
+              type="text"
+              placeholder="Insert keyword here..."
+              ml="1em"
+              w="97%"
+            />
+          </CTagLabel>
         </c-box>
         <c-flex>
           <c-checkbox v-model="geoEnable" size="md" variant-color="green">Enable geolocalization</c-checkbox>
+        </c-flex>
+        <c-flex>
+          <c-checkbox v-model="onlyGeolocalized" size="md" variant-color="green">Show only geolocalized Tweets</c-checkbox>
         </c-flex>
         <c-button
           id="searchButton"
@@ -153,7 +162,7 @@
 </template>
 
 <script>
-import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
+import { CTagLabel, CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
 import { getPreciseDistance } from 'geolib'
 import { Tweet } from 'vue-tweet-embed'
 import Map from '../../components/Map'
@@ -178,7 +187,8 @@ export default {
     TermCloud,
     Map,
     Tweet,
-    ActivityChart
+    ActivityChart,
+    CTagLabel
   },
   data () {
     return {
@@ -202,7 +212,8 @@ export default {
       isStreaming: false,
       searchDisabled: Boolean,
       activity: Object,
-      termWord: Array
+      termWord: Array,
+      onlyGeolocalized: false
     }
   },
   created () {
@@ -226,7 +237,7 @@ export default {
       this.tweets = []
       const director = new QueryDirector(new V2Builder())
       const arg = {
-        keyword: this.keyword,
+        keyword: this.onlyGeolocalized ? this.keyword.concat(' has:geo') : this.keyword,
         username: this.username,
         geocode: this.geoEnable ? this.geocode : undefined
       }
@@ -312,8 +323,11 @@ export default {
         query.keywords = this.keyword
       }
 
+      this.isStreaming = true
       core.stream(query, (tweet) => {
-        this.isStreaming = true
+        console.log(tweet)
+        tweet.geo = { place_id: tweet.place.id }
+        tweet.author_id = tweet.user.id_str
         if (this.tweets.length > 30) {
           this.tweets.pop()
         }

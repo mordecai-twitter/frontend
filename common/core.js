@@ -138,10 +138,6 @@ class Core {
     if (username !== '') {
       query.query = `${query.query} from:${username}`
     }
-    // if (place !== '') {
-    //   console.log('Inside place')
-    //   query.query = `${query.query} place:${place} has:geo`
-    // }
     if (geocode.latitude && geocode.longitude && geocode.radius) {
       query.query = `${query.query} point_radius:[${geocode.longitude} ${geocode.latitude} ${geocode.radius}km] has:geo`
     }
@@ -176,7 +172,6 @@ class Core {
 
   abortStream () {
     if (this.abortStreamCallback) {
-      console.log('aborting in core')
       this.abortStreamCallback()
       this.abortStreamCallback = null
     }

@@ -54,35 +54,35 @@ export default {
   },
   watch: {
     async tweets () {
-      if (this.geoEnable) {
-        const geoTweets = []
-        for (const tweet of this.tweets) {
-          if (tweet.geo) {
-            const userInfo = await core.getUserInfo(tweet.author_id)
-            tweet.user = userInfo.data
-            tweet.icon = leaflet.icon({ iconUrl: userInfo.data.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
-            if (!tweet.geo.coordinates) {
-              const longLat = await core.getGeo(tweet.geo.place_id)
-              if (longLat) {
-                longLat[0] = longLat[0] + this.getRandomArbitrary(-0.0005, 0.0005)
-                longLat[1] = longLat[1] + this.getRandomArbitrary(-0.0005, 0.0005)
-                tweet.geo.coordinates = {
-                  coordinates: longLat.reverse()
-                }
-                geoTweets.push(tweet)
-              }
-            } else {
-              const longLat = tweet.geo.coordinates.coordinates
+      console.log(this.tweets)
+      const geoTweets = []
+      for (const tweet of this.tweets) {
+        if (tweet.geo) {
+          const userInfo = await core.getUserInfo(tweet.author_id)
+          tweet.user = userInfo.data
+          tweet.icon = leaflet.icon({ iconUrl: userInfo.data.profile_image_url, shadowSize: [50, 64], iconSize: [32, 37], iconAnchor: [16, 37] })
+          if (!tweet.geo.coordinates) {
+            const longLat = await core.getGeo(tweet.geo.place_id)
+            if (longLat) {
+              longLat[0] = longLat[0] + this.getRandomArbitrary(-0.0005, 0.0005)
+              longLat[1] = longLat[1] + this.getRandomArbitrary(-0.0005, 0.0005)
               tweet.geo.coordinates = {
                 coordinates: longLat.reverse()
               }
               geoTweets.push(tweet)
             }
+          } else {
+            const longLat = tweet.geo.coordinates.coordinates
+            tweet.geo.coordinates = {
+              coordinates: longLat.reverse()
+            }
+            geoTweets.push(tweet)
           }
+        } else {
+          console.log('Non localizzato')
         }
-        this.geoTweets = geoTweets
-        console.log(this.geoTweets.length)
       }
+      this.geoTweets = geoTweets
     }
   },
   created () {
@@ -100,7 +100,6 @@ export default {
     },
     addMarker (event) {
       const coordinates = event.latlng
-      console.log(event.latlng)
       this.marker = {
         coordinates
       }
