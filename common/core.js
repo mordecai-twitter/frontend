@@ -292,5 +292,6 @@ class Core {
 const core = new Core()
 
 export {
-  core
+  core,
+  Paginator
 }

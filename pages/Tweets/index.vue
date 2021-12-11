@@ -12,7 +12,7 @@
         <c-box>
           <h3>Filters:</h3>
           <c-input
-            id="textInput"
+            id="textInputUsername"
             v-model="username"
             pl="1em"
             variant="flushed"
@@ -23,7 +23,7 @@
             w="97%"
           />
           <c-input
-            id="textInput"
+            id="textInputKeyword"
             v-model="keyword"
             pl="1em"
             variant="flushed"
@@ -99,7 +99,7 @@
                 <c-tab-panels>
                   <c-tab-panel>
                     <c-flex id="sentimentContainer" direction="column" align="center">
-                      <SentimentChart :title="'Tweets'" :labels="['Positive', 'Negative', 'Neutral']" :chartdata="sentiment.chartdata" />
+                      <SentimentChart id="sentimentChart" :title="'Tweets'" :labels="['Positive', 'Negative', 'Neutral']" :chartdata="sentiment.chartdata" />
                     </c-flex>
                   </c-tab-panel>
                   <c-tab-panel align="left">
@@ -111,7 +111,7 @@
                   <c-tab-panel v-if="geoEnable">
                     <ActivityChart :activity="activity" />
                   </c-tab-panel>
-                  <c-tab-panel>
+                  <c-tab-panel id="termcloudContainer">
                     <TermCloud :words="termcloud" @onWordClick="onTermCloudWordClick" />
                   </c-tab-panel>
                 </c-tab-panels>
@@ -153,7 +153,10 @@
 </template>
 
 <script>
-import { CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon, CBox, CAccordionItem, CCheckbox } from '@chakra-ui/vue'
+import {
+  CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon,
+  CBox, CAccordionItem, CCheckbox, CSliderFilledTrack, CSliderThumb, CSliderTrack, CSlider, CTabs, CTabList, CTab, CTabPanel, CTabPanels
+} from '@chakra-ui/vue'
 import { getPreciseDistance } from 'geolib'
 import { Tweet } from 'vue-tweet-embed'
 import Map from '../../components/Map'
@@ -171,6 +174,15 @@ export default {
     CAccordionPanel,
     CAccordionIcon,
     CAccordionHeader,
+    CSliderFilledTrack,
+    CSliderThumb,
+    CSliderTrack,
+    CSlider,
+    CTabs,
+    CTabList,
+    CTab,
+    CTabPanel,
+    CTabPanels,
     SentimentChart,
     CFlex,
     CInput,
