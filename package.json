@@ -45,6 +45,8 @@
     "eslint-plugin-vue": "^7.12.1",
     "flush-promises": "^1.0.2",
     "jest": "^27.0.5",
+    "jest-canvas-mock": "^2.3.1",
+    "rewire": "^5.0.0",
     "vue-jest": "^3.0.4"
   }
 }

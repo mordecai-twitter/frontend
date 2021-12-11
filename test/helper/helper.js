@@ -1,6 +1,6 @@
-import { CThemeProvider } from '@chakra-ui/vue'
+import { CThemeProvider, CColorModeProvider } from '@chakra-ui/vue'
 import { mount } from '@vue/test-utils'
-import mockedAxios from '../mocks/axios'
+import mockedAxios from '../__mocks__/axios'
 
 function random (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -29,7 +29,8 @@ function getMountedWrappedPage (Page) {
     stubs: {
       NuxtLink: true,
       Nuxt: true
-    }
+    },
+    parentComponent: CColorModeProvider
   }
   )
 }

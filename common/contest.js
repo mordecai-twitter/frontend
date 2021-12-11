@@ -180,4 +180,4 @@ class Participant extends User {
   }
 }
 
-export { Contest }
+export { Contest, User, Voter, Participant }

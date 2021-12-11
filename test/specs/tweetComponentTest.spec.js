@@ -1,10 +1,3 @@
-/* eslint-disable no-useless-escape */
-describe('.', () => {
-  it('', () => {})
-})
-
-/*
-
 import { mount } from '@vue/test-utils'
 import { CThemeProvider } from '@chakra-ui/vue'
 import Tweet from '../../components/Tweet.vue'
@@ -48,4 +41,4 @@ describe("Test for the 'tweet' components", () => {
   test('It should not display simple text with a particular style', () => {
     expect(mock.wrapper.html()).not.toContain(`<span class=\"blue\">${mock.plainText}</span>`)
   })
-})*/
+})

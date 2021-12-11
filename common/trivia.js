@@ -281,4 +281,4 @@ class Player {
   }
 }
 
-export { Trivia }
+export { Trivia, Question, Player }

@@ -1,158 +1,223 @@
+/* eslint-disable node/no-callback-literal */
 
-describe('.', () => {
-  it('', () => {})
-})
-/* import flushPromises from 'flush-promises'
+import flushPromises from 'flush-promises'
 import Page from '../../pages/Tweets/index.vue'
-import { getMountedWrappedPage, randomlyInsertString, simulateSearchQuery } from '../helper/helper'
+import { getMountedWrappedPage } from '../helper/helper'
 import Data from '../helper/data.js'
-import mockedAxios from '../mocks/axios'
 import Assert from '../helper/assertion'
-import Tweet from '../../components/Tweet.vue'
-import { core } from '../../common/core'
+import { core, Paginator } from '../../common/core'
 
-const mock = {}
 jest.mock('axios', () => {
   const mAxiosInstance = { get: jest.fn() }
   return {
     create: jest.fn(() => mAxiosInstance)
   }
 })
+jest.mock('../../common/core')
 
 describe('Test for the page showing all tweets', () => {
+  const mock = {}
+
   beforeEach(() => {
     mock.wrapper = getMountedWrappedPage(Page)
-    mock.searchSelect = mock.wrapper.find('#searchTypesSelect')
-    mock.searchSelectOption = {
-      user: mock.wrapper.find('#searchTypesSelect option[value=\'user\']'),
-      keyword: mock.wrapper.find('#searchTypesSelect option[value=\'keyword\']')
-    }
-    mock.textInput = mock.wrapper.find('#textInput')
-    mock.goButton = mock.wrapper.find('#searchButton')
+    mock.textInputKeyword = mock.wrapper.find('#textInputKeyword')
+    mock.searchButton = mock.wrapper.find('#searchButton')
     mock.tweetsContainer = mock.wrapper.find('#tweetsContainer')
-
+    mock.streamButton = mock.wrapper.find('#streamButton')
+    mock.abortButton = mock.wrapper.find('#abortButton')
+    mock.olderButton = mock.wrapper.find('#olderButton')
+    mock.recentButton = mock.wrapper.find('#recentButton')
     mock.tweets = Data.getTweetsData()
-
-    // Mocca la funzione sentiment di core, perché non vogliamo testarla adesso
-    core.sentiment = jest.fn()
-  })
-
-  afterEach(() => {
-    jest.clearAllMocks()
   })
 
   describe('Preliminary test', () => {
-    test('The search select should exists', () => {
-      Assert.componentExistance(mock.searchSelect)
-    })
-
-    test('The search select option should exists', () => {
-      Assert.componentExistance(mock.searchSelectOption.user)
-      Assert.componentExistance(mock.searchSelectOption.keyword)
-    })
-
     test('The text input should exists', () => {
-      Assert.componentExistance(mock.textInput)
+      Assert.componentExistance(mock.textInputKeyword)
     })
 
     test('The tweets container should exists', () => {
       Assert.componentExistance(mock.tweetsContainer)
     })
+
+    test('The search button should exists', () => {
+      Assert.componentExistance(mock.searchButton)
+    })
+
+    test('The stream button should exists and abort button should not exists', () => {
+      Assert.componentExistance(mock.streamButton)
+      expect(mock.abortButton.exists()).toBe(false)
+    })
+
+    test('The older and recent button should exists at beginning', () => {
+      expect(mock.olderButton.exists()).toBe(false)
+      expect(mock.recentButton.exists()).toBe(false)
+    })
   })
 
-  describe('Testing the search', () => {
-    test('It should display tweet containing the hashtag of the query', async () => {
+  describe('Test for the user stories', () => {
+    test('Stream, if user click on stream, core Stream should be called', async () => {
       const query = '#MotoGp'
 
-      // Aggiungo in mezzo al testo dei tweets il testo della query
-      mock.tweets.statuses.forEach((tweet) => {
-        tweet.text = randomlyInsertString(tweet.text, query)
-      })
-
-      simulateSearchQuery(mock, query, mock.tweets, mock.searchSelectOption.keyword)
-      // Attendo il risultato
+      await mock.textInputKeyword.setValue(query)
+      await mock.streamButton.trigger('click')
       await flushPromises()
 
-      // Mi aspetto che tutti i tweets contengano nel loro testo la query
-      const childrens = mock.tweetsContainer.findAllComponents(Tweet)
-      Assert.componentsPropToContainValue(childrens, query, prop => prop.tweet.text)
+      expect(core.stream).toHaveBeenCalled()
     })
 
-    test('It should display tweet containing the queried text', async () => {
-      const query = 'random text'
+    test('Stream, if user click on abort, core abortStream should be called', async () => {
+      const query = '#MotoGp'
 
-      // Aggiungo in mezzo al testo dei tweets il testo della query
-      mock.tweets.statuses.forEach((tweet) => {
-        tweet.text = randomlyInsertString(tweet.text, query)
+      await mock.textInputKeyword.setValue(query)
+      core.stream.mockImplementation((query, callback) => {
+        callback({
+          id: 'id'
+        })
       })
-
-      simulateSearchQuery(mock, query, mock.tweets, mock.searchSelectOption.keyword)
+      await mock.streamButton.trigger('click')
       await flushPromises()
 
-      // Mi aspetto che tutti i tweets contengano nel loro testo la query
-      const childrens = mock.tweetsContainer.findAllComponents(Tweet)
-      Assert.componentsPropToContainValue(childrens, query, prop => prop.tweet.text)
+      mock.abortButton = mock.wrapper.find('#abortButton')
+      await mock.abortButton.trigger('click')
+      await flushPromises()
+
+      expect(core.abortStream).toHaveBeenCalled()
     })
 
-    test('It should display tweet tweeted by the user in the query', async () => {
-      const query = 'NASA'
-      const tweets = Data.getTweetsBetween(0, 3)
+    test('If user click on search the core.search should be called, along with sentiment e termcloud', async () => {
+      const query = '#MotoGp'
 
-      simulateSearchQuery(mock, query, tweets, mock.searchSelectOption.user)
+      await mock.textInputKeyword.setValue(query)
+      core.search.mockResolvedValue({ getTweets () { return [] } })
+      await mock.searchButton.trigger('click')
       await flushPromises()
 
-      const childrens = mock.tweetsContainer.findAllComponents(Tweet)
-      Assert.componentsPropToBeValue(childrens, query, prop => prop.tweet.user.name)
+      expect(core.search).toHaveBeenCalled()
+      expect(core.sentiment).toHaveBeenCalled()
+      expect(core.termcloud).toHaveBeenCalled()
+    })
+
+    test('If user click on search the core.search should be called, along with sentiment e termcloud', async () => {
+      const query = '#MotoGp'
+
+      await mock.textInputKeyword.setValue(query)
+      core.search.mockResolvedValue({ getTweets () { return [] } })
+      await mock.searchButton.trigger('click')
+      await flushPromises()
+
+      expect(core.search).toHaveBeenCalled()
+      expect(core.sentiment).toHaveBeenCalled()
+      expect(core.termcloud).toHaveBeenCalled()
+    })
+
+    test('Termcloud should appear when a search is made', async () => {
+      const query = '#MotoGp'
+
+      await mock.textInputKeyword.setValue(query)
+      core.search.mockResolvedValue({ getTweets () { return [] } })
+      core.sentiment.mockResolvedValue({
+        score: 0,
+        comparative: -0.12343137254901955,
+        best: {
+          score: 8,
+          tweet: {
+            id: '1467568358962999296',
+            lang: 'it',
+            text: "RT @51_seal: Al Tg4 è stato assegnato il premio Seminatore d'odio 2021, per la mole di fango riservata ai novax rei di avere legittimi dubb…"
+          }
+        },
+        worst: {
+          score: -7,
+          tweet: {
+            id: '1467568582028632074',
+            lang: 'it',
+            text: '@LaStampa Quando la gente viene discriminata, bullizzata, demonizzata, insultata, emarginata, odiata, crocifissa, bersagliata, oppressa...Cosa succede di solito? Cosa ci ha insegnato la storia? ⛔ LA GUERRA. #ObbligoVaccinale #NoGreenPass #supergreenpass #Crisanti #Draghi #novax #greenpass https://t.co/9i713UuCWf'
+          }
+        },
+        positiveCount: 22,
+        negativeCount: 33,
+        neutralCount: 47,
+        chartdata: [10, 20, 30]
+      })
+      core.termcloud.mockResolvedValue([['parola1', 50], ['parola2', 25], ['parola3', 10]])
+      await mock.searchButton.trigger('click')
+      await flushPromises()
+
+      const termcloudWrapper = mock.wrapper.find('#term-cloud-wrap')
+      Assert.componentExistance(termcloudWrapper)
+    })
+
+    test('Sentimental chart should appear when a search is made', async () => {
+      const query = '#MotoGp'
+
+      await mock.textInputKeyword.setValue(query)
+      core.search.mockResolvedValue({ getTweets () { return [] } })
+      core.sentiment.mockResolvedValue({
+        score: 0,
+        comparative: -0.12343137254901955,
+        best: {
+          score: 8,
+          tweet: {
+            id: '1467568358962999296',
+            lang: 'it',
+            text: "RT @51_seal: Al Tg4 è stato assegnato il premio Seminatore d'odio 2021, per la mole di fango riservata ai novax rei di avere legittimi dubb…"
+          }
+        },
+        worst: {
+          score: -7,
+          tweet: {
+            id: '1467568582028632074',
+            lang: 'it',
+            text: '@LaStampa Quando la gente viene discriminata, bullizzata, demonizzata, insultata, emarginata, odiata, crocifissa, bersagliata, oppressa...Cosa succede di solito? Cosa ci ha insegnato la storia? ⛔ LA GUERRA. #ObbligoVaccinale #NoGreenPass #supergreenpass #Crisanti #Draghi #novax #greenpass https://t.co/9i713UuCWf'
+          }
+        },
+        positiveCount: 22,
+        negativeCount: 33,
+        neutralCount: 47,
+        chartdata: [10, 20, 30]
+      })
+      core.termcloud.mockResolvedValue([['parola1', 50], ['parola2', 25], ['parola3', 10]])
+      await mock.searchButton.trigger('click')
+      await flushPromises()
+
+      const sentimentChart = mock.wrapper.find('#sentimentContainer')
+      Assert.componentExistance(sentimentChart)
+    })
+
+    test('Clicking on older or recent button should make core request', async () => {
+      const query = '#MotoGp'
+
+      await mock.textInputKeyword.setValue(query)
+
+      core.search.mockResolvedValue(new Paginator())
+      Paginator.prototype.getTweets.mockReturnValue([{ id: '1469641961569079306' }, { id: '1469641961569079307' }, { id: '1469641961569079308' }])
+
+      await mock.searchButton.trigger('click')
+      await flushPromises()
+
+      mock.olderButton = mock.wrapper.find('#olderButton')
+      Assert.componentExistance(mock.olderButton)
+
+      core.search.mockResolvedValue(new Paginator())
+      Paginator.prototype.getTweets.mockReturnValue([{ id: '1469641961569079303' }, { id: '1469641961569079304' }, { id: '1469641961569079305' }])
+      Paginator.prototype.next.mockReturnValue(2)
+
+      await mock.olderButton.trigger('click')
+      await flushPromises()
+
+      expect(Paginator.prototype.next).toHaveBeenCalledTimes(1)
+
+      mock.recentButton = mock.wrapper.find('#recentButton')
+      Assert.componentExistance(mock.recentButton)
+
+      core.search.mockResolvedValue(new Paginator())
+      Paginator.prototype.getTweets.mockReturnValue([{ id: '1469641961569079303' }, { id: '1469641961569079304' }, { id: '1469641961569079305' }])
+      Paginator.prototype.prev.mockReturnValue(1)
+
+      await mock.recentButton.trigger('click')
+      await flushPromises()
+
+      expect(Paginator.prototype.prev).toHaveBeenCalledTimes(1)
     })
   })
-
-  describe('Testing the page button', () => {
-    let firstPageTweet = {}
-    let olderButton = {}
-
-    beforeEach(async () => {
-      firstPageTweet = Data.getTweetsBetween(0, 3)
-      simulateSearchQuery(mock, '', firstPageTweet, mock.searchSelectOption.keyword)
-      await flushPromises()
-
-      olderButton = mock.wrapper.find('#olderButton')
-      Assert.componentExistance(olderButton)
-    })
-
-    test('It should change the current displayed tweet when user clicks on "older" and display a new set of tweets', async () => {
-      const secondPageTweet = Data.getTweetsBetween(4, 5)
-      mockedAxios.mockOkRequest(secondPageTweet)
-
-      let childrens = mock.tweetsContainer.findAllComponents(Tweet)
-      Assert.componentsPropToBeArray(childrens, firstPageTweet.statuses, prop => prop.tweet.id_str, tweet => tweet.id_str)
-      Assert.componentsPropToNotBeArray(childrens, secondPageTweet.statuses, prop => prop.tweet.id_str, tweet => tweet.id_str)
-
-      olderButton.trigger('click')
-      await flushPromises()
-
-      childrens = mock.tweetsContainer.findAllComponents(Tweet)
-      Assert.componentsPropToBeArray(childrens, secondPageTweet.statuses, prop => prop.tweet.id_str, tweet => tweet.id_str)
-      Assert.componentsPropToNotBeArray(childrens, firstPageTweet.statuses, prop => prop.tweet.id_str, tweet => tweet.id_str)
-    })
-
-    test('It should display the same tweets if user clicks on "older" then "recent" ', async () => {
-      const secondPageTweet = Data.getTweetsBetween(4, 5)
-      mockedAxios.mockMultipleRequest({ search: secondPageTweet })
-
-      olderButton.trigger('click')
-      await flushPromises()
-
-      const recentButton = mock.wrapper.find('#recentButton')
-      Assert.componentExistance(recentButton)
-
-      // NOTE: questa terza richiesta mocckata può essere inutile, dipende tutto da se si fa cache dei tweet o no
-      mockedAxios.mockMultipleRequest({ search: firstPageTweet })
-      recentButton.trigger('click')
-      await flushPromises()
-
-      const childrens = mock.tweetsContainer.findAllComponents(Tweet)
-      Assert.componentsPropToBeArray(childrens, firstPageTweet.statuses, prop => prop.tweet.id_str, tweet => tweet.id_str)
-      Assert.componentsPropToNotBeArray(childrens, secondPageTweet.statuses, prop => prop.tweet.id_str, tweet => tweet.id_str)
-    })
-  })
-}) */
+})

@@ -4,7 +4,8 @@ import { config } from '@vue/test-utils'
 
 Vue.use(Chakra, {
   $chakraTheme: () => {},
-  $chakraColorMode: () => {}
+  $chakraColorMode: () => {},
+  $SliderContext: () => {}
 })
 Vue.config.silent = false
 

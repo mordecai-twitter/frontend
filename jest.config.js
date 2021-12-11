@@ -1,5 +1,5 @@
 module.exports = {
-  setupFilesAfterEnv: ['./test/setup.js'],
+  setupFilesAfterEnv: ['./test/setup.js', 'jest-canvas-mock'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^~/(.*)$': '<rootDir>/$1',
