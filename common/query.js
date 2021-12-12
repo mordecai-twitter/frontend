@@ -177,6 +177,14 @@ class QueryDirector {
     }
   }
 
+  /**
+  * @summary Create a standard search query
+  * @param {string} keyword - Keyword to search.
+  * @param {string} username - Owner of the tweets.
+  * @param {Object} geocode - Geocode information.
+  *
+  * @return {Query} - Query object
+  */
   makeSearchQuery (keyword, username, geocode) {
     this.builder.setExpansion('max_results', '30')
     this.builder.setExpansion('user.fields', 'username')
@@ -193,6 +201,12 @@ class QueryDirector {
     return this.builder.build()
   }
 
+  /**
+  * @summary Create a contest query
+  * @param {string} - Keyword to search.
+  *
+  * @return {Query} - Query object
+  */
   makeContestQuery (keyword) {
     const builder = new V2Builder()
     if (keyword && typeof keyword === 'string') {
@@ -202,6 +216,12 @@ class QueryDirector {
     return builder.build()
   }
 
+  /**
+  * @summary Create a trivia query
+  * @param {string} - Keyword to search.
+  *
+  * @return {Query} - Query object
+  */
   makeTriviaQuery (keyword) {
     const builder = new V2Builder()
     if (keyword && typeof keyword === 'string') {

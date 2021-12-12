@@ -160,6 +160,13 @@ class Core {
     }
   }
 
+  /**
+  * @summary Start a streaming
+  * @param {string} query - Query object
+  * @param {function} callback - Callback to invoke when new tweets are delivered
+  * @param {function} errorCallback - Callback to invoke when an error occurs
+  *
+  */
   stream (query, callback, errorCallback) {
     this.abortStream()
 
@@ -170,6 +177,10 @@ class Core {
     }
   }
 
+  /**
+  * @summary Abort the current stream
+  *
+  */
   abortStream () {
     if (this.abortStreamCallback) {
       this.abortStreamCallback()
@@ -218,6 +229,12 @@ class Core {
     }
   }
 
+  /**
+  * @summary Sentiment analysis of the given query
+  * @param {Object} query - Query object
+  *
+  * @return {Object} Sentiment analysis with the number of positive, negative, neutral tweets.
+  */
   async sentiment (query) {
     try {
       const analysis = await this.api.sentiment(query)

@@ -2,6 +2,10 @@ import Twitter from './twitter'
 import { QueryDirector, V2Builder } from './query'
 import { core } from './core'
 
+/**
+* @class Trivia class
+* This class manages a Trivia game using twitter
+*/
 class Trivia {
   // #UniboSWE3 #TriviaGame #NewTrivia #[trivia name]
   constructor (name) {
@@ -13,19 +17,37 @@ class Trivia {
     this.api = new Twitter()
   }
 
+  /**
+  * @summary Initialize the trivia
+  *
+  */
   async init () {
     await this.fetchQuestions()
     await this.fetchPlayers()
   }
 
+  /**
+  * @summary Return the questions in the trivia
+  * @return {Object} Questions made in the trivia
+  *
+  */
   getQuestions () {
     return this.questions
   }
 
+  /**
+  * @summary Return the players in the trivia
+  * @return {Object} Players in the trivia
+  *
+  */
   getPlayers () {
     return this.players
   }
 
+  /**
+  * @summary Load the trivia questions
+  *
+  */
   async fetchQuestions () {
     const keyword = `#UniboSWE3 #TriviaGame #${this.name} #Question`
     const director = new QueryDirector(new V2Builder())
@@ -37,6 +59,10 @@ class Trivia {
     }
   }
 
+  /**
+  * @summary Load the trivia players
+  *
+  */
   async fetchPlayers () {
     // #UniboSWE3 #TriviaGame #[trivia name] #Answer #_[question name] #[option number]
     const keyword = `#UniboSWE3 #TriviaGame #${this.name} #Answer`
@@ -54,6 +80,11 @@ class Trivia {
     }
   }
 
+  /**
+  * @summary Add a player to the trivia
+  * @param {Object} player - Player to add
+  *
+  */
   async addPlayer (player) {
     const answer = player.text.match(/#A_[1-4]\w*/g)[0].replace(/#A_/g, '')
     const questionName = player.text.match(/#_[\w_0-9]+/g)[0]
@@ -67,6 +98,11 @@ class Trivia {
     }
   }
 
+  /**
+  * @summary Load all the proposal for the contest
+  * @param {Object} question - Question to add
+  *
+  */
   async addQuestion (question) {
     // Looking for Trivia Creator
     if (!this.creator) {
@@ -139,6 +175,11 @@ class Trivia {
     })
   }
 
+  /**
+  * @summary Get the scores of all players
+  * @return {Object} Associative array: { playerId: points }
+  *
+  */
   getScores () {
     const results = {}
     for (const [playerId, player] of Object.entries(this.players)) {
@@ -150,6 +191,12 @@ class Trivia {
     return results
   }
 
+  /**
+  * @summary Get the answers given to a question
+  * @param {string} questionName - name of the question
+  * @return {Object} Associative array: { option: number }
+  *
+  */
   getQuestionResults (questionName) {
     const results = {}
     const options = this.questions[questionName].getOptions()
@@ -169,12 +216,18 @@ class Trivia {
     return results
   }
 
+  /**
+  * @summary Abort the live trivia
+  */
   abort () {
     this.isStreaming = false
     core.abortStream()
   }
 }
 
+/**
+* @class Question class
+*/
 class Question {
   // #UniboSWE3 #TriviaGame #[trivia name] #Question #_[question name] #1_[option1]
   // #2_[option2] #3_[option3] #4_[option4]
@@ -190,6 +243,7 @@ class Question {
 
   /**
   * @summary Check if a solution exists
+  * @param {string} authorId - Id of the author of the question
   */
   async searchSolution (authorId) {
     // #UniboSWE3 #TriviaGame #[trivia name] #Solution #_[question name] #[option number]
@@ -214,10 +268,23 @@ class Question {
     this.solution = { solution: solution.replace(/#(S|s)_/, ''), deadline }
   }
 
+  /**
+  * @summary Check if a solution is correct
+  * @param {number} answer - Option chosen
+  * @param {string} time - Time of the answer
+  *
+  * @return {boolean} Valid solution
+  */
   checkSolution (answer, time) {
     return (this.solution && answer === this.getSolution() && this.checkDeadline(time)) ? 1 : 0
   }
 
+  /**
+  * @summary Check if a solution is given before the deadline
+  * @param {string} answerTime - Option chosen
+  *
+  * @return {boolean} Valid time
+  */
   checkDeadline (answerTime) {
     const deadline = this.getDeadline()
     if (deadline) {
@@ -227,27 +294,57 @@ class Question {
     }
   }
 
+  /**
+  * @summary Get question deadline
+  *
+  * @return {date} Question deadline
+  */
   getDeadline () {
     return this.solution ? this.solution.deadline : undefined
   }
 
+  /**
+  * @summary Get the solution
+  *
+  * @return {number} Question solution
+  */
   getSolution () {
     return this.solution.solution
   }
 
+  /**
+  * @summary Get the options of the question
+  *
+  * @return {Array} Question options
+  */
   getOptions () {
     return this.options
   }
 
+  /**
+  * @summary Get the name of the question
+  *
+  * @return {date} Question name
+  */
   getName () {
     return this.name
   }
 
+  /**
+  * @summary Get the text of the question
+  *
+  * @return {date} Question text
+  */
   getText () {
     return this.text
   }
 }
 
+/**
+* @class Player class
+*
+* This class contains information about a trivia player
+*/
 class Player {
   constructor (id) {
     this.id = id
@@ -257,19 +354,39 @@ class Player {
     this.username = undefined
   }
 
+  /**
+  * @summary Fetch the player's usename
+  *
+  */
   async fetchUsername () {
     this.username = (await new Twitter().userById(this.id, {})).data.username
   }
 
+  /**
+  * @summary Get player's username
+  * @return {string} Player's username
+  *
+  */
   getUsername () {
     return this.username
   }
 
+  /**
+  * @summary Get player's answers
+  * @return {string} Player's username
+  *
+  */
   getAnswer () {
     return this.answers
   }
 
-  // si potrebbe evitare andando a filtrare anche per id/data i tweet di answer
+  /**
+  * @summary Add an answer to the player
+  * @param {string} question - Question name
+  * @param {number} option - Option chosen
+  * @param {string} time - Answer time
+  *
+  */
   addAnswer (question, option, time) {
     // facciamo già il reverse dell'array contenente le risposte, quindi ci basterebbe controllare se this.answer[question]!==null
     if (!this.answers[question]) {

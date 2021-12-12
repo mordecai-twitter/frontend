@@ -93,6 +93,14 @@ class twitter {
     return await this.request(this.searchV2Url, query)
   }
 
+  /**
+  * @summary Start a stream using V1 API
+  * @param {string} query - Keyword to search.
+  * @param {function} callback - Callback to invoke when new tweets are delivered
+  * @param {function} errorCallback - Callback to invoke when an error occurs
+  *
+  * @return {Query} - Query object
+  */
   stream (query, callback, errorCallback) {
     const regExHash = /#/g
     const regExTag = /@/g
@@ -226,10 +234,18 @@ class twitter {
     return await this.request(this.termCloudUrl, query)
   }
 
+  /**
+  * @summary Make a contest search
+  * @param {Object} query - Contest query
+  */
   async contest (query) {
     return await this.request(this.contestUrl, query)
   }
 
+  /**
+  * @summary Make a contest search
+  * @param {Object} query - Contest query
+  */
   async trivia (query) {
     return await this.request(this.triviaUrl, query)
   }
