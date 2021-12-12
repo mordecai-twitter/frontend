@@ -41,7 +41,8 @@ class Query {
   * queryObject.appendString('user', ' ', 'geocode', ':', geocodeInfo)
   */
   appendString (key, spacer, name, sign, value) {
-    this.query[key] = `${this.query[key] ? `${this.query[key]}${spacer}` : ''}${name}${sign}${value}`
+    const toNest = `${this.query[key]}${spacer}`
+    this.query[key] = `${this.query[key] ? `${toNest}` : ''}${name}${sign}${value}`
     return this.query[key]
   }
 

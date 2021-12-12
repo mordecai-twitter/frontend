@@ -51,7 +51,6 @@ class Contest {
     if (!this.voters[proposal.author_id]) {
       this.voters[proposal.author_id] = new Voter(proposal.author_id)
     }
-    // TODO: Allow voters to vote non-proposed books
     this.voters[proposal.author_id]?.addVote(this.participants[proposalName])
   }
 

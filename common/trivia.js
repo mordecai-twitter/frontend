@@ -193,7 +193,6 @@ class Question {
   */
   async searchSolution (authorId) {
     // #UniboSWE3 #TriviaGame #[trivia name] #Solution #_[question name] #[option number]
-    // TODO: The solution must be given by the creator
     const keyword = `#UniboSWE3 #TriviaGame #${this.trivia} ${this.name} #Solution from:${authorId}`
     const director = new QueryDirector(new V2Builder())
     const query = director.makeTriviaQuery(keyword).get()
@@ -212,7 +211,6 @@ class Question {
   * @param {string} deadline - Time deadline
   */
   setSolution (solution, deadline) {
-    // TODO: Sistemare l'option parsing, samuele ha detto che non si tweeta direttamente con #numero CREDO FATTO
     this.solution = { solution: solution.replace(/#(S|s)_/, ''), deadline }
   }
 
@@ -271,7 +269,6 @@ class Player {
     return this.answers
   }
 
-  // TODO: Va aggiunto oltre alla risposta data il quando e' stata fatta (id oppure timestamp)
   // si potrebbe evitare andando a filtrare anche per id/data i tweet di answer
   addAnswer (question, option, time) {
     // facciamo già il reverse dell'array contenente le risposte, quindi ci basterebbe controllare se this.answer[question]!==null

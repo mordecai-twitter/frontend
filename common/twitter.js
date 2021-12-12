@@ -102,7 +102,7 @@ class twitter {
 
     fetch(this.baseURL + this.streamUrl + '?' + parameters, { signal: abortController.signal })
       .then(async (response) => {
-        const reader = await response.body.getReader()
+        const reader = response.body.getReader()
         let buffer = ''
 
         while (!done) {

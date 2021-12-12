@@ -242,8 +242,7 @@ class Core {
     try {
       const analysis = await this.api.termcloud(query)
       if (analysis) {
-        const processedAnalysis = analysis.map(x => [x.word, x.freq])
-        return processedAnalysis
+        return analysis.map(x => [x.word, x.freq])
       }
       return undefined
     } catch (error) {
