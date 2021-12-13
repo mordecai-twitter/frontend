@@ -1,5 +1,6 @@
 /**
- * @file Query management
+ * @file Query management class are defined here. In this file is implemented the builder design pattern to manage query
+ * @author Antonio Lopez, Andrea Zecca
  */
 
 /**

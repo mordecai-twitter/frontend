@@ -1,3 +1,8 @@
+/**
+ * @file In this file is implemented the singleton design pattern to manage standard operation with twitter
+ * @author Antonio Lopez, Andrea Zecca
+ */
+
 import Twitter from './twitter'
 
 /** Paginator for scroll tweets */

@@ -1,3 +1,8 @@
+/**
+ * @file In this file is implemented a contest management by twitter
+ * @author Antonio Lopez, Andrea Zecca, Samuele Marro
+ */
+
 import Twitter from './twitter'
 import { QueryDirector, V2Builder } from './query'
 import { core } from './core'

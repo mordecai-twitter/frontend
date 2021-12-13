@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 /** Interface with Mordecai back-end */
-class twitter {
+class Twitter {
   handleError (err) {
     console.log(err)
   }
@@ -251,4 +251,4 @@ class twitter {
   }
 }
 
-export default twitter
+export default Twitter
