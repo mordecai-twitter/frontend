@@ -1,21 +1,37 @@
 <template>
   <c-box id="wrapper" m="2em" mt="4em">
-    <c-input variant="flushed" v-model="contestName" type="text" placeholder="Insert here your contest name" />
+    <c-input variant="flushed" v-model="contestName" v-on:keyup.enter="searchContest()" type="text" placeholder="Insert here your contest name" />
     <c-stack :spacing="5" is-inline align="center" justify="center">
-      <c-button variant-color="black" type="button" name="button" @click="searchContest()">Search</c-button>
-      <c-button variant-color="black" type="button" name="button" @click="createContest()">Create</c-button>
+      <c-button :isDisabled="!this.contestName" variant-color="black" type="button" name="button" @click="searchContest()">Search</c-button>
+      <c-button :isDisabled="!this.contestName" variant-color="black" type="button" name="button" @click="createContest()">Create</c-button>
     </c-stack>
     <c-box v-if="this.contest">
       <c-heading>Contest: {{ this.contest.name }}</c-heading>
-      <c-input variant="flushed" v-model="proposalName" placeholder="Proposal name"></c-input>
-      <c-button variant-color="black" @click="createProposal()">Create proposal</c-button>
-      <c-box v-for="vote in votes" :key="vote.name">
-        <c-text>{{vote.name}}: {{vote.count}}</c-text>
-        <c-button variant-color="black" @click="createVote(vote.name)">Vote</c-button>
-      </c-box>
-      <c-box v-if="votes" h="600px">
-        <VotesChart v-bind:votes="votes" />
-      </c-box>
+      <c-input variant="flushed" v-model="proposalName" v-on:keyup.enter="createProposal()" placeholder="Proposal name"></c-input>
+      <c-button variant-color="black" @click="createProposal()" :isDisabled="!this.proposalName">Add proposal</c-button>
+      <c-flex>
+        <c-box id="votes" w="30em">
+          <c-box
+          v-for="vote in votes"
+          :key="vote.name"
+          @click="createVote(vote.name)"
+          border="1px"
+          m="1em"
+          p="1em"
+          class="contestOption"
+          >
+            <c-flex class="vote">
+              <c-flex justify="center" align="center">
+                <c-text pr="1em">{{vote.name}} </c-text>
+              </c-flex>
+              <c-tag variantColor="vue">votes: {{vote.count}}</c-tag>
+            </c-flex>
+          </c-box>
+        </c-box>
+        <c-box w="30em" h="30em" pl="2em" v-if="votes">
+          <VotesChart v-bind:votes="votes"/>
+        </c-box>
+      </c-flex>
     </c-box>
   </c-box>
 </template>
@@ -101,3 +117,17 @@ export default {
 }
 
 </script>
+
+<style>
+  .contestOption:hover {
+    background-color: cadetblue;
+    cursor: pointer;
+  }
+  #votes {
+    overflow: auto;
+    height: 30em
+  }
+  .vote {
+    justify-content: space-between;
+  }
+</style>

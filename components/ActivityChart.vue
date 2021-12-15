@@ -37,12 +37,25 @@ export default {
           {
             responsive: true,
             maintainAspectRatio: true,
+            legend: {
+              labels: {
+                fontColor: 'white'
+              }
+            },
             scales: {
               yAxes: [
                 {
                   ticks: {
                     beginAtZero: true,
-                    min: 0
+                    min: 0,
+                    fontColor: 'white'
+                  }
+                }
+              ],
+              xAxes: [
+                {
+                  ticks: {
+                    fontColor: 'white'
                   }
                 }
               ]

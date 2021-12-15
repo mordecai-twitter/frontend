@@ -7,57 +7,114 @@
         <c-close-button position="absolute" right="8px" top="8px" @click="() => {this.messageType = ''}"/>
       </c-alert>
     </c-stack>
-    <c-input variant="flushed" v-model="triviaName" type="text" placeholder="Insert here your trivia name" />
+    <c-input v-on:keyup.enter="searchTrivia()" variant="flushed" v-model="triviaName" type="text" placeholder="Insert here your trivia name" />
     <c-stack :spacing="5" is-inline align="center" justify="center">
-      <c-button variant-color="black" type="button" name="button" @click="searchTrivia()">Search</c-button>
-      <c-button variant-color="black" type="button" name="button" @click="createTrivia()">Create</c-button>
+      <c-button :isDisabled="!this.triviaName" variant-color="black" type="button" name="button" @click="searchTrivia()">Search</c-button>
+      <c-button :isDisabled="!this.triviaName" variant-color="black" type="button" name="button" @click="createTrivia()">Create</c-button>
     </c-stack>
     <c-box v-if="this.trivia">
-      <c-heading>Trivia: {{ this.trivia.name }}</c-heading>
-      <c-box>
-        <c-input variant="flushed" v-model="questionName" placeholder="Insert here the question name"></c-input>
-        <c-input variant="flushed" v-model="questionText" placeholder="Insert here the question text"></c-input>
-        <c-input variant="flushed" v-model="possibleAnswer" placeholder="Insert here possible answer"></c-input>
-        <c-button variant-color="black" @click="insertPossibleAnswer()">Insert possible answer</c-button>
-        <c-button variant-color="black" @click="createQuestion()">Create Question</c-button>
-
-        <c-heading size="sm" v-if="possibleAnswers.length > 0">Inserted options:</c-heading>
-        <c-box v-for="(answer, index, a) in possibleAnswers" :key="answer">
-          <c-text>{{ index + 1 }}. {{ answer }} {{ a }}</c-text>
-          <c-button variant-color="black" @click="deleteOption(index)">Delete Option</c-button>
-        </c-box>
-      </c-box>
-      <c-box>
-        <c-heading>Questions</c-heading>
-        <c-spinner v-if="loading" />
-        <c-box v-else v-for="question in questions" :key="question.name">
-          <c-heading as="h4" size="sm">{{ question.text || "** question text **" }}</c-heading>
-          <c-box v-for="(option, index, a) in Object.keys(question.answers)" :key="option">
-            <c-text>{{ index + 1 }}. {{ option }} {{ a }}</c-text>
-            <c-box v-if="question.solution === undefined">
-              <c-button variant-color="blue" @click="sendAnswer(index, question.name)">Choose Answer</c-button>
-              <c-button variant-color="green" @click="sendSolution(index, question.name)">Mark as Correct</c-button>
+      <c-heading mb="0.3em">Trivia: {{ this.trivia.name }}</c-heading>
+      <c-tabs>
+        <c-tab-list>
+          <c-tab>New question</c-tab>
+          <c-tab>Questions</c-tab>
+          <c-tab>Leaderboard</c-tab>
+        </c-tab-list>
+        <c-tab-panels>
+          <c-tab-panel>
+            <c-heading mt="0.5em" mb="0.3em">New question</c-heading>
+            <c-box>
+              <c-input variant="flushed" v-model="questionText" v-on:keyup.enter="insertQuestionText()" placeholder="Question text" ></c-input>
+              <c-button :isDisabled="!questionText" variant-color="black" @click="insertQuestionText()" v-if="questionCreationStage === 'questionText'">Next</c-button>
             </c-box>
-          </c-box>
-          <AnswerChart :answers="question.answers" />
-        </c-box>
-      </c-box>
-      <c-box>
-        <c-heading>Leaderboard</c-heading>
-        <c-input variant="flushed" v-model="leaderboardFilter" placeholder="Filter by username"></c-input>
-        <c-box v-for="([index, username, score]) in getFilteredLeaderboard(leaderboardFilter)" :key="index">
-          <c-text>{{ index + 1 }}. {{ username }} {{ score }}</c-text>
-        </c-box>
-      </c-box>
+            <c-box v-if="questionCreationStage === 'options' || questionCreationStage === 'questionName'">
+            <c-flex>
+              <c-input w="15em" variant="flushed" v-model="possibleAnswer" v-on:keyup.enter="insertPossibleAnswer()" placeholder="Possible answer"></c-input>
+              <c-button variant-color="black" :isDisabled="!this.possibleAnswer" @click="insertPossibleAnswer()">Add option</c-button>
+            </c-flex>
+              <c-heading size="sm" v-if="possibleAnswers.length > 0">Inserted options:</c-heading>
+              <c-flex v-for="(answer, index, a) in possibleAnswers" :key="answer">
+                <c-text w="10em">{{ index + 1 }}. {{ answer }} {{ a }}</c-text>
+                <c-icon-button
+                  class="close"
+                  color="red.500"
+                  size="0.6em"
+                  aria-label="Search database"
+                  icon="close"
+                  bg="transparent"
+                  @click="deleteOption(index)"
+                  :_hover="{ bg: 'transparent' }"
+                />
+              </c-flex>
+              <c-button variant-color="black" @click="insertOptions" :isDisabled="this.possibleAnswers.length === 0" v-if="questionCreationStage === 'options'">Next</c-button>
+            </c-box>
+            <c-box v-if="questionCreationStage === 'questionName'">
+              <c-input v-on:keyup.enter="createQuestion()" variant="flushed" v-model="questionName" placeholder="Name your question"></c-input>
+              <c-button variant-color="white" :isDisabled="!this.questionName" @click="createQuestion()">Create Question</c-button>
+            </c-box>
+          </c-tab-panel>
+          <c-tab-panel>
+            <c-heading mt="0.5em" mb="0.3em">Questions</c-heading>
+            <c-spinner v-if="loading" />
+            <c-box
+              v-else
+              v-for="question in questions"
+              :key="question.name"
+              border-width="1px"
+              p="1em"
+              m="1em"
+            >
+              <c-flex>
+                <c-box width="25%">
+                  <c-heading as="h4" size="sm">{{ question.text || "** question text **" }}</c-heading>
+                  <c-flex>
+                    <c-box width="25em">
+                      <c-box width="25em" mb="0.5em" v-for="(option, index, a) in Object.keys(question.answers)" :key="option">
+                        <c-text>{{ index + 1 }}. {{ option }} {{ a }} <c-icon name="check-circle" color="green.500" v-if="index === question.solution" /></c-text>
+                        <c-box v-if="question.solution === undefined">
+                          <c-button variant-color="blue" @click="sendAnswer(index, question.name)">Choose Answer</c-button>
+                          <c-button variant-color="green" @click="sendSolution(index, question.name)">Mark as Correct</c-button>
+                        </c-box>
+                      </c-box>
+                    </c-box>
+                    <c-box>
+                      <AnswerChart :answers="question.answers" />
+                    </c-box>
+                  </c-flex>
+                </c-box>
+              </c-flex>
+            </c-box>
+          </c-tab-panel>
+          <c-tab-panel>
+            <c-heading mt="0.5em" mb="0.3em">Leaderboard</c-heading>
+            <c-input variant="flushed" v-model="leaderboardFilter" placeholder="Filter by username"></c-input>
+            <c-box v-for="([index, username, score]) in getFilteredLeaderboard(leaderboardFilter)" :key="index">
+              <c-text>{{ index + 1 }}. {{ username }} {{ score }} </c-text>
+            </c-box>
+          </c-tab-panel>
+        </c-tab-panels>
+      </c-tabs>
     </c-box>
   </c-box>
 </template>
 
 <script>
+import {
+  CBox, CTabs, CTabList, CTab, CTabPanel, CTabPanels, CHeading, CText
+} from '@chakra-ui/vue'
+
 import { Trivia } from '../../common/trivia'
+
 export default {
   components: {
-
+    CTabs,
+    CTabList,
+    CTabPanels,
+    CTab,
+    CTabPanel,
+    CBox,
+    CHeading,
+    CText
   },
   computed: {
     leaderboard () {
@@ -85,7 +142,8 @@ export default {
       message: '',
       messageType: '', // info, success, warning, error
       leaderboardFilter: '',
-      scores: {}
+      scores: {},
+      questionCreationStage: 'questionText'
     }
   },
   methods: {
@@ -111,12 +169,16 @@ export default {
         {
           text: q.getText(),
           name: q.getName().substring(2).replace('_', ' '),
-          answers: this.trivia.getQuestionResults(q.getName()),
-          solution: q.solution
+          answers: Object.fromEntries(Object.entries(this.trivia.getQuestionResults(q.getName())).map(([k, v]) => [k.replace('_', ' '), v])),
+          solution: q.getSolution() === undefined ? undefined : parseInt(q.getSolution())
         }
       ))
     },
     async searchTrivia () {
+      if (!this.triviaName) {
+        return
+      }
+
       // Reset all values to default
       this.trivia = undefined
       this.possibleAnswers = []
@@ -126,6 +188,7 @@ export default {
       this.loading = true
       this.leaderboardFilter = ''
       this.scores = {}
+      this.questionCreationStage = 'questionText'
 
       if (this.trivia) {
         this.trivia.abort()
@@ -166,6 +229,9 @@ export default {
       }
     },
     insertPossibleAnswer () {
+      if (!this.possibleAnswer) {
+        return
+      }
       this.possibleAnswers.push(this.possibleAnswer)
       this.possibleAnswer = ''
     },
@@ -173,13 +239,9 @@ export default {
       this.possibleAnswers.splice(index, 1)
     },
     createQuestion () {
-      if (this.questionName === '') {
-        this.notifyUser('Please insert a question name', 'warning')
-      } else if (this.questionText === '') {
-        this.notifyUser('Please insert a question text', 'warning')
-      } else if (this.possibleAnswers.length === 0) {
-        this.notifyUser('Please insert at least one possible answer', 'warning')
-      } else {
+      if (this.questionName !== '' && this.questionText !== '' && this.possibleAnswers.length > 0) {
+        this.questionCreationStage = 'questionText'
+
         const triviaName = this.triviaName.replace(/\s/g, '_')
         const questionName = this.questionName.replace(/\s/g, '_')
         const possibleAnswers = []
@@ -213,8 +275,29 @@ export default {
       }
 
       return filteredLeaderboard
+    },
+    insertQuestionText () {
+      if (this.questionCreationStage === 'questionText' && this.questionText) {
+        this.questionCreationStage = 'options'
+      }
+    },
+    insertOptions () {
+      if (this.questionCreationStage === 'options' && this.possibleAnswers.length > 0) {
+        this.questionCreationStage = 'questionName'
+      }
     }
   }
 }
 
 </script>
+
+<style>
+  .close {
+    background-color: transparent;
+    border: none;
+  }
+  .close:hover {
+    background-color: transparent;
+    border: none;
+  }
+</style>

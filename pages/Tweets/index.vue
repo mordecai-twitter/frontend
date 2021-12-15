@@ -9,24 +9,12 @@
         wrap="wrap"
         min-width="20em"
       >
-        <c-box>
-          <h3>Filters:</h3>
-          <CTagLabel>
-            Username
-            <c-input
-              id="textInputUsername"
-              v-model="username"
-              pl="1em"
-              variant="flushed"
-              bg="#16202c"
-              type="text"
-              placeholder="Insert username here..."
-              ml="1em"
-              w="97%"
-            />
-          </CTagLabel>
-          <CTagLabel>
-            Keyword
+        <c-heading as="h2" size="xl">Filters</c-heading>
+        <c-box ml="0em">
+          <c-box>
+           <CTagLabel>
+            <c-flex align="center">
+            <c-heading as="h5" size="sm" w="5em">Keyword</c-heading>
             <c-input
               id="textInputKeyword"
               v-model="keyword"
@@ -34,18 +22,40 @@
               variant="flushed"
               bg="#16202c"
               type="text"
-              placeholder="Insert keyword here..."
+              placeholder="Insert keyword here... e.g. pizza"
               ml="1em"
               w="97%"
+              v-on:keyup.enter="search()"
             />
-          </CTagLabel>
+            </c-flex>
+            </CTagLabel>
+            <CTagLabel>
+            <c-flex align="center">
+            <c-heading as="h5" size="sm" w="5em">Username</c-heading>
+              <c-input
+                id="textInputUsername"
+                v-model="username"
+                pl="1em"
+                variant="flushed"
+                bg="#16202c"
+                type="text"
+                placeholder="Insert username here... e.g. VitalikButerin"
+                ml="1em"
+                w="97%"
+                v-on:keyup.enter="search()"
+              />
+            </c-flex>
+            </CTagLabel>
+          </c-box>
         </c-box>
-        <c-flex>
-          <c-checkbox v-model="geoEnable" size="md" variant-color="green">Enable geolocalization</c-checkbox>
-        </c-flex>
-        <c-flex>
-          <c-checkbox v-model="onlyGeolocalized" size="md" variant-color="green">Show only geolocalized Tweets</c-checkbox>
-        </c-flex>
+        <c-form-control mt="1em">
+          <c-switch v-model="geoEnable" size="md"/>
+          <c-form-label>Enable geolocalization</c-form-label>
+        </c-form-control>
+        <c-form-control>
+          <c-switch v-model="onlyGeolocalized" size="md"/>
+          <c-form-label>Show only geolocalized Tweets</c-form-label>
+        </c-form-control>
         <c-button
           id="searchButton"
           name="searchButton"
@@ -150,7 +160,10 @@
             >Recent</button>
           </c-flex>
         </c-flex>
-        <c-flex id="tweetsContainer" direction="column" w="100%" flex-wrap>
+        <c-flex v-if="isLoading" w="30em" h="400px" justify="center" align="center">
+          <c-spinner size="xl"/>
+        </c-flex>
+        <c-flex v-else id="tweetsContainer" direction="column" w="100%" flex-wrap>
           <!-- <Tweet v-for="tweet in tweets" :key="tweet.id_str" :tweet="tweet" /> -->
           <c-box v-for="tweet in tweets" :key="(tweet.id_str || tweet.id)" p="4">
             <Tweet :id="tweet.id_str || tweet.id" />
@@ -164,7 +177,7 @@
 <script>
 import {
   CFlex, CInput, CButton, CSpinner, CAccordionPanel, CAccordionHeader, CAccordionIcon,
-  CBox, CAccordionItem, CCheckbox, CSliderFilledTrack, CSliderThumb, CSliderTrack, CSlider, CTabs, CTabList, CTab, CTabPanel, CTabPanels, CTagLabel
+  CBox, CAccordionItem, CSwitch, CSliderFilledTrack, CSliderThumb, CSliderTrack, CSlider, CTabs, CTabList, CTab, CTabPanel, CTabPanels, CTagLabel
 } from '@chakra-ui/vue'
 import { getPreciseDistance } from 'geolib'
 import { Tweet } from 'vue-tweet-embed'
@@ -177,7 +190,7 @@ import { QueryDirector, V2Builder } from '../../common/query'
 export default {
   components: {
     CAccordionItem,
-    CCheckbox,
+    CSwitch,
     CBox,
     CSpinner,
     CAccordionPanel,
@@ -246,6 +259,10 @@ export default {
       }
     },
     async search () {
+      if (!this.username && !this.keyword && !this.geoEnable) {
+        return
+      }
+
       this.tweets = []
       const director = new QueryDirector(new V2Builder())
       const arg = {
@@ -282,6 +299,10 @@ export default {
       await this.search()
     },
     stream () {
+      if (!this.username && !this.keyword && !this.geoEnable) {
+        return
+      }
+
       this.tweets = []
       const query = {}
 

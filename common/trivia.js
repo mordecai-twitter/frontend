@@ -314,7 +314,7 @@ class Question {
   * @return {number} Question solution
   */
   getSolution () {
-    return this.solution.solution
+    return this.solution?.solution
   }
 
   /**
